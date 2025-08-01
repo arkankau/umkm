@@ -1,0 +1,29 @@
+name = "umkm-go-digital"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[env.production]
+name = "umkm-go-digital-prod"
+
+[env.staging]
+name = "umkm-go-digital-staging"
+
+# KV namespaces for different environments
+[[kv_namespaces]]
+binding = "UMKM_KV"
+id = "umkm-business-data"
+preview_id = "umkm-business-data-preview"
+
+[env.production.kv_namespaces]
+binding = "UMKM_KV"
+id = "umkm-business-data-prod"
+
+[env.staging.kv_namespaces]
+binding = "UMKM_KV"
+id = "umkm-business-data-staging"
+
+# Environment variables
+[vars]
+EDGEONE_API_TOKEN = ""
+EDGEONE_ACCOUNT_ID = ""
+EDGEONE_ZONE_ID = "" 

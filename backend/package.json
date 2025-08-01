@@ -1,0 +1,30 @@
+{
+  "name": "umkm-go-digital",
+  "version": "1.0.0",
+  "description": "UMKM Go Digital - EdgeOne Functions Backend for automated website generation",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "umkm",
+    "edgeone",
+    "functions",
+    "website-generation",
+    "indonesia",
+    "digital-transformation"
+  ],
+  "author": "UMKM Go Digital Team",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^4.27.0"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
