@@ -33,10 +33,10 @@ export async function deployToEdgeOne(subdomain, html, businessData, env) {
 // Real EdgeOne Pages deployment (for production)
 export async function deployToEdgeOnePages(subdomain, html, businessData, env) {
   try {
-    const deploymentUrl = `https://api.edgeone.com/v1/pages/deployments`;
+    // EdgeOne uses Cloudflare Pages API
+    const deploymentUrl = `https://api.cloudflare.com/client/v4/accounts/${env.EDGEONE_ACCOUNT_ID}/pages/projects/${subdomain}/deployments`;
     
     const deploymentData = {
-      name: subdomain,
       files: [
         {
           name: 'index.html',
@@ -60,9 +60,7 @@ export async function deployToEdgeOnePages(subdomain, html, businessData, env) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${env.EDGEONE_API_TOKEN}`,
-        'X-Account-ID': env.EDGEONE_ACCOUNT_ID,
-        'X-Zone-ID': env.EDGEONE_ZONE_ID
+        'Authorization': `Bearer ${env.EDGEONE_API_TOKEN}`
       },
       body: JSON.stringify(deploymentData)
     });

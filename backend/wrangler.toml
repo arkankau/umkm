@@ -24,6 +24,5 @@ id = "umkm-business-data-staging"
 
 # Environment variables
 [vars]
-EDGEONE_API_TOKEN = ""
-EDGEONE_ACCOUNT_ID = ""
-EDGEONE_ZONE_ID = "" 
+EDGEONE_API_TOKEN = "ueFiz8PVO5byDF8oMiy2tYbT8dw4zhHt"
+EDGEONE_ACCOUNT_ID = "50200064504"

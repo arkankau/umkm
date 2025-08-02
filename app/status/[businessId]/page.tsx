@@ -3,15 +3,32 @@
 import { useEffect, useState } from 'react';
 import { getBusinessStatus, BusinessStatus } from '../../../lib/api';
 
-export default function StatusPage({ params }: { params: { businessId: string } }) {
+export default function StatusPage({ params }: { params: Promise<{ businessId: string }> }) {
   const [status, setStatus] = useState<BusinessStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [businessId, setBusinessId] = useState<string>('');
 
   useEffect(() => {
+    const initializePage = async () => {
+      try {
+        const resolvedParams = await params;
+        setBusinessId(resolvedParams.businessId);
+      } catch (err) {
+        setError('Failed to load business ID');
+        setLoading(false);
+      }
+    };
+
+    initializePage();
+  }, [params]);
+
+  useEffect(() => {
+    if (!businessId) return;
+
     const fetchStatus = async () => {
       try {
-        const result = await getBusinessStatus(params.businessId);
+        const result = await getBusinessStatus(businessId);
         setStatus(result);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load status');
@@ -25,7 +42,7 @@ export default function StatusPage({ params }: { params: { businessId: string } 
     // Poll for status updates every 5 seconds
     const interval = setInterval(fetchStatus, 5000);
     return () => clearInterval(interval);
-  }, [params.businessId]);
+  }, [businessId]);
 
   if (loading) {
     return (

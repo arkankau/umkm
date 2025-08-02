@@ -105,7 +105,7 @@ The backend now includes an advanced template system that combines:
    [env]
    EDGEONE_API_TOKEN = "your-api-token"
    EDGEONE_ACCOUNT_ID = "your-account-id"
-   EDGEONE_ZONE_ID = "your-zone-id"
+   # Zone ID is not needed for EdgeOne Pages deployment
    ```
 
 ### Development

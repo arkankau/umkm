@@ -25,7 +25,7 @@ id = "umkm-business-data-staging"
 # EdgeOne API Configuration
 EDGEONE_API_TOKEN = "your-edgeone-api-token-here"
 EDGEONE_ACCOUNT_ID = "your-edgeone-account-id-here"
-EDGEONE_ZONE_ID = "your-edgeone-zone-id-here"
+# Zone ID is not needed for EdgeOne Pages deployment
 
 # Optional: Custom domain for generated sites
 CUSTOM_DOMAIN = "umkm.id"

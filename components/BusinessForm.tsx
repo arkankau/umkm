@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { submitBusiness, BusinessData, SubmitBusinessResponse } from '../lib/api';
+import WebsitePreview from './WebsitePreview';
 
 export default function BusinessForm() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function BusinessForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState<SubmitBusinessResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -231,14 +233,32 @@ export default function BusinessForm() {
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? 'Mengirim...' : 'Buat Website'}
-        </button>
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Mengirim...' : 'Buat Website'}
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => setShowPreview(true)}
+            disabled={!formData.businessName || !formData.ownerName || !formData.description || !formData.phone || !formData.address}
+            className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Preview
+          </button>
+        </div>
       </form>
+      
+      {showPreview && (
+        <WebsitePreview
+          businessData={formData}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </div>
   );
 } 
