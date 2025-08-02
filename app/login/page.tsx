@@ -11,11 +11,11 @@ const Login = () => {
             <h1 className='font-bold font-mont text-center text-2xl'>Welcome Back</h1>
             <div className="flex flex-col gap-2 mx-auto">
                 <h3 className='text-sm'>Email</h3>
-                <input className='bg-white border-[1.6] w-[19rem] h-[2rem] border-stroke rounded-sm' type="email" />
+                <input className='bg-white border-[1.6] w-[19rem] h-[2rem] border-stroke rounded-sm outline-none' type="email" />
             </div>
             <div className="flex flex-col gap-2 mx-auto">
                 <h3 className='text-sm'>Password</h3>
-                <input className='bg-white border-[1.6] w-[19rem] h-[2rem] border-stroke rounded-sm' type="email" />
+                <input className='bg-white border-[1.6] w-[19rem] h-[2rem] border-stroke rounded-sm outline-none' type="password" />
             </div>
             <div className="flex flex-col mt-4 mx-auto">
                 <h3 className='bg-button text-white flex items-center text-sm justify-center font-mont w-[19rem] text-center h-[2rem] rounded-sm'>Continue</h3>
