@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack -p 4000",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:html": "ts-node test-html-generation.ts",
+    "test:deployment": "ts-node test-website-deployment.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.53.0",

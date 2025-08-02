@@ -1,25 +1,30 @@
 // EdgeOne Pages deployment utilities
+import puppeteerDeploy from '../api/puppeteer-deploy.js';
+
 export async function deployToEdgeOne(subdomain, html, businessData, env) {
   try {
-    // For MVP, we'll simulate deployment to EdgeOne Pages
-    // In production, this would use the actual EdgeOne API
+    console.log(`Starting deployment for subdomain: ${subdomain}`);
     
-    console.log(`Deploying site for subdomain: ${subdomain}`);
+    // First, try puppeteer deployment
+    console.log('Attempting puppeteer deployment...');
+    const puppeteerResult = await puppeteerDeploy(html, subdomain);
     
-    // Simulate deployment delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Validate deployment success
-    const deploymentResult = {
-      success: true,
-      url: `https://${subdomain}.umkm.id`,
-      subdomain: subdomain,
-      deployedAt: Date.now()
-    };
-    
-    console.log(`Deployment successful: ${deploymentResult.url}`);
-    
-    return deploymentResult;
+    if (puppeteerResult.success) {
+      console.log(`Puppeteer deployment successful: ${puppeteerResult.url}`);
+      return {
+        success: true,
+        url: puppeteerResult.url,
+        subdomain: subdomain,
+        deployedAt: puppeteerResult.deployedAt,
+        deploymentMethod: 'puppeteer'
+      };
+    } else {
+      console.log('Puppeteer deployment failed, falling back to API deployment...');
+      console.error('Puppeteer error:', puppeteerResult.error);
+      
+      // Fallback to API deployment
+      return await deployToEdgeOnePages(subdomain, html, businessData, env);
+    }
     
   } catch (error) {
     console.error('Deployment failed:', error);

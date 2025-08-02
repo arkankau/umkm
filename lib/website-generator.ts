@@ -447,8 +447,28 @@ window.addEventListener('load', () => {
     };
     return colors[category] || { primary: '#3498db', secondary: '#2980b9' };
   }
+
+  // Generate complete HTML file with embedded CSS and JS
+  generateCompleteHTML(): string {
+    const html = this.generateHTML();
+    const css = this.generateCSS();
+    const js = this.generateJS();
+    
+    // Replace the placeholder comments with actual CSS and JS
+    const completeHTML = html
+      .replace('/* CSS will be injected here */', css)
+      .replace('// JavaScript will be injected here', js);
+    
+    return completeHTML;
+  }
 }
 
 export async function generateWebsite(businessData: BusinessData): Promise<GeneratedWebsite> {
   return await new WebsiteGenerator(businessData).generate();
+}
+
+// Utility function to generate complete HTML file for deployment
+export function generateCompleteHTML(businessData: BusinessData): string {
+  const generator = new WebsiteGenerator(businessData);
+  return generator.generateCompleteHTML();
 } 
