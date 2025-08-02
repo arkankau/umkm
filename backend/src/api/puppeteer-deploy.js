@@ -167,9 +167,9 @@ async function deploy(htmlCode, domain) {
     }
     
     // Get the final URL if possible
-    let finalUrl = `https://${domain}.umkm.id`;
+    let finalUrl = `https://${domain}.edgeone.app`;
     try {
-      const urlElement = await page.locator('a[href*=".umkm.id"]').first();
+      const urlElement = await page.locator('a[href*=".edgeone.app"]').first();
       if (await urlElement.count() > 0) {
         const href = await urlElement.getAttribute('href');
         if (href) {
