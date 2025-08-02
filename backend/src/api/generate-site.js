@@ -1,4 +1,4 @@
-import { loadTemplate, processTemplate } from '../utils/template.js';
+import { loadTemplate, processTemplate, getAvailableThemes } from '../utils/template.js';
 import { deployToEdgeOne } from '../utils/deployment.js';
 
 export async function generateSite(request, env, ctx) {
@@ -13,7 +13,27 @@ export async function generateSite(request, env, ctx) {
   }
 
   try {
-    const { businessId } = await request.json();
+    let data;
+    try {
+      if (request.json) {
+        data = await request.json();
+      } else if (request.body) {
+        data = JSON.parse(request.body);
+      } else {
+        throw new Error('Invalid request format');
+      }
+    } catch (parseError) {
+      console.error('Failed to parse request:', parseError);
+      return new Response(JSON.stringify({
+        error: 'Invalid JSON',
+        message: 'Failed to parse request body'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const { businessId, customTheme } = data;
     
     if (!businessId) {
       return new Response(JSON.stringify({ 
@@ -40,6 +60,18 @@ export async function generateSite(request, env, ctx) {
 
     const businessData = JSON.parse(businessDataJson);
     
+    // Normalize business data
+    if (businessData.products && typeof businessData.products === 'string') {
+      businessData.products = [{
+        name: 'Menu',
+        items: businessData.products.split(',').map(item => ({
+          name: item.trim(),
+          price: 0,
+          description: ''
+        }))
+      }];
+    }
+    
     // Update status to processing
     businessData.status = 'processing';
     businessData.processingStartedAt = Date.now();
@@ -49,11 +81,8 @@ export async function generateSite(request, env, ctx) {
       JSON.stringify(businessData)
     );
 
-    // Load appropriate template based on category
-    const template = await loadTemplate(businessData.category);
-    
-    // Process template with business data
-    const html = processTemplate(template, businessData);
+    // Load appropriate template based on category with custom theme
+    const html = await loadTemplate(businessData.category, businessData, customTheme);
     
     // Deploy to EdgeOne Pages
     const deployment = await deployToEdgeOne(
@@ -67,11 +96,12 @@ export async function generateSite(request, env, ctx) {
       throw new Error(deployment.error || 'Deployment failed');
     }
     
-    // Update business data with success status
+    // Update business data with success status and theme info
     businessData.status = 'live';
     businessData.websiteUrl = `https://${businessData.subdomain}.umkm.id`;
     businessData.deployedAt = Date.now();
     businessData.processingTime = businessData.deployedAt - businessData.processingStartedAt;
+    businessData.theme = customTheme || 'default';
     
     await env.UMKM_KV.put(
       `business:${businessId}`, 
@@ -83,6 +113,7 @@ export async function generateSite(request, env, ctx) {
       url: businessData.websiteUrl,
       subdomain: businessData.subdomain,
       processingTime: businessData.processingTime,
+      theme: businessData.theme,
       message: 'Website generated and deployed successfully'
     }), {
       status: 200,
@@ -110,12 +141,48 @@ export async function generateSite(request, env, ctx) {
         }
       }
     } catch (updateError) {
-      console.error('Error updating business status:', updateError);
+      console.error('Failed to update error status:', updateError);
     }
     
     return new Response(JSON.stringify({ 
-      error: 'Site Generation Failed',
+      error: 'Internal Server Error',
       message: error.message || 'Failed to generate website'
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+// New API endpoint to get available themes
+export async function getThemes(request, env, ctx) {
+  if (request.method !== 'GET') {
+    return new Response(JSON.stringify({ 
+      error: 'Method Not Allowed',
+      message: 'Only GET method is allowed' 
+    }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  try {
+    const themes = getAvailableThemes();
+    
+    return new Response(JSON.stringify({ 
+      success: true,
+      themes: themes
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+  } catch (error) {
+    console.error('Get themes error:', error);
+    
+    return new Response(JSON.stringify({ 
+      error: 'Internal Server Error',
+      message: error.message || 'Failed to get themes'
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

@@ -1,0 +1,190 @@
+{
+  "id": "restaurant",
+  "name": "Restaurant Template",
+  "description": "Template khusus untuk restoran, warung makan, dan bisnis kuliner lainnya",
+  "category": "food",
+  "version": "1.0.0",
+  "author": "UMKM Go Digital",
+  "features": [
+    "menu",
+    "gallery", 
+    "contact",
+    "maps",
+    "delivery_apps",
+    "opening_hours",
+    "social_links"
+  ],
+  "required_fields": [
+    "business_name",
+    "description",
+    "phone",
+    "address"
+  ],
+  "optional_fields": [
+    "tagline",
+    "logo",
+    "featured_image",
+    "whatsapp",
+    "email",
+    "opening_hours",
+    "menu",
+    "gallery",
+    "delivery_apps",
+    "social_links"
+  ],
+  "menu_structure": {
+    "categories": [
+      {
+        "name": "Makanan Utama",
+        "items": [
+          {
+            "name": "Nasi Goreng",
+            "description": "Nasi goreng dengan telur dan ayam",
+            "price": 25000,
+            "available": true
+          },
+          {
+            "name": "Mie Goreng",
+            "description": "Mie goreng dengan sayuran segar",
+            "price": 22000,
+            "available": true
+          }
+        ]
+      },
+      {
+        "name": "Minuman",
+        "items": [
+          {
+            "name": "Es Teh Manis",
+            "description": "Teh manis dingin",
+            "price": 5000,
+            "available": true
+          },
+          {
+            "name": "Es Jeruk",
+            "description": "Jeruk peras segar",
+            "price": 8000,
+            "available": true
+          }
+        ]
+      }
+    ]
+  },
+  "delivery_apps": [
+    {
+      "name": "GoFood",
+      "link": "https://gofood.co.id"
+    },
+    {
+      "name": "GrabFood", 
+      "link": "https://food.grab.com"
+    },
+    {
+      "name": "ShopeeFood",
+      "link": "https://shopee.co.id/food"
+    }
+  ],
+  "social_links": {
+    "instagram": "https://instagram.com/username",
+    "facebook": "https://facebook.com/username",
+    "tiktok": "https://tiktok.com/@username"
+  },
+  "preview_image": "/previews/restaurant.jpg",
+  "color_scheme": {
+    "primary": "#2563eb",
+    "secondary": "#16a34a",
+    "accent": "#f59e0b"
+  },
+  "sections": [
+    {
+      "id": "hero",
+      "name": "Hero Section",
+      "description": "Bagian utama dengan nama bisnis dan call-to-action"
+    },
+    {
+      "id": "about",
+      "name": "Tentang Kami",
+      "description": "Informasi tentang bisnis dan lokasi"
+    },
+    {
+      "id": "menu",
+      "name": "Menu",
+      "description": "Daftar menu makanan dan minuman",
+      "optional": true
+    },
+    {
+      "id": "gallery",
+      "name": "Galeri",
+      "description": "Foto-foto suasana dan makanan",
+      "optional": true
+    },
+    {
+      "id": "contact",
+      "name": "Kontak",
+      "description": "Informasi kontak dan form pesan"
+    },
+    {
+      "id": "map",
+      "name": "Lokasi",
+      "description": "Peta lokasi bisnis",
+      "optional": true
+    }
+  ],
+  "form_fields": [
+    {
+      "name": "name",
+      "label": "Nama Lengkap",
+      "type": "text",
+      "required": true,
+      "placeholder": "Masukkan nama lengkap"
+    },
+    {
+      "name": "email",
+      "label": "Email",
+      "type": "email",
+      "required": true,
+      "placeholder": "contoh@email.com"
+    },
+    {
+      "name": "phone",
+      "label": "Nomor Telepon",
+      "type": "tel",
+      "required": true,
+      "placeholder": "08123456789"
+    },
+    {
+      "name": "message",
+      "label": "Pesan",
+      "type": "textarea",
+      "required": true,
+      "placeholder": "Tulis pesan Anda di sini..."
+    }
+  ],
+  "analytics_events": [
+    "page_view",
+    "form_submit",
+    "phone_click",
+    "whatsapp_click",
+    "menu_view",
+    "gallery_view",
+    "delivery_app_click"
+  ],
+  "seo": {
+    "title_template": "{{ business.name }} - {{ business.tagline | default('Restoran Terbaik') }}",
+    "description_template": "{{ business.description }}. Nikmati hidangan lezat dengan cita rasa autentik.",
+    "keywords": ["restoran", "makanan", "kuliner", "warung makan", "catering"]
+  },
+  "mobile_optimization": {
+    "responsive": true,
+    "touch_friendly": true,
+    "fast_loading": true,
+    "pwa_ready": true
+  },
+  "integrations": {
+    "google_maps": true,
+    "whatsapp": true,
+    "delivery_apps": true,
+    "social_media": true,
+    "analytics": true
+  }
+} 

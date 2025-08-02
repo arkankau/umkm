@@ -1,5 +1,5 @@
 import { submitBusiness } from './api/submit-business.js';
-import { generateSite } from './api/generate-site.js';
+import { generateSite, getThemes } from './api/generate-site.js';
 import { getStatus } from './api/get-status.js';
 import { getBusiness } from './api/get-business.js';
 
@@ -32,6 +32,9 @@ export default {
           break;
         case '/api/generate-site':
           response = await generateSite(request, env, ctx);
+          break;
+        case '/api/get-themes':
+          response = await getThemes(request, env, ctx);
           break;
         case '/api/get-status':
           response = await getStatus(request, env, ctx);

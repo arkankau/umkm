@@ -47,6 +47,18 @@ export async function getBusiness(request, env, ctx) {
 
     const businessData = JSON.parse(businessDataJson);
     
+    // Normalize products data if needed
+    if (businessData.products && typeof businessData.products === 'string') {
+      businessData.products = [{
+        name: 'Menu',
+        items: businessData.products.split(',').map(item => ({
+          name: item.trim(),
+          price: 0,
+          description: ''
+        }))
+      }];
+    }
+    
     // Remove sensitive fields for public access
     const publicData = {
       id: businessData.id,

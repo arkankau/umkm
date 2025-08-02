@@ -25,7 +25,22 @@ const testBusinessData = {
   ownerName: "Budi Santoso",
   description: "Warung makan tradisional dengan cita rasa autentik Indonesia",
   category: "restaurant",
-  products: "Nasi goreng, Mie goreng, Soto ayam, Es teh manis",
+  products: [
+    {
+      name: "Menu Utama",
+      items: [
+        { name: "Nasi Goreng", price: 25000, description: "Nasi goreng spesial dengan telur dan ayam" },
+        { name: "Mie Goreng", price: 23000, description: "Mie goreng dengan sayuran segar" },
+        { name: "Soto Ayam", price: 20000, description: "Soto ayam kuah bening" }
+      ]
+    },
+    {
+      name: "Minuman",
+      items: [
+        { name: "Es Teh Manis", price: 5000, description: "Teh manis dingin segar" }
+      ]
+    }
+  ],
   phone: "081234567890",
   email: "budi@warung.com",
   address: "Jl. Sudirman No. 123, Jakarta Pusat",

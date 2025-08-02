@@ -21,7 +21,15 @@ const mockEnv = {
           ownerName: 'Test Owner',
           description: 'Test description',
           category: 'restaurant',
-          products: 'Test products',
+          products: [
+            {
+              name: "Menu Utama",
+              items: [
+                { name: "Test Product 1", price: 25000, description: "Description 1" },
+                { name: "Test Product 2", price: 30000, description: "Description 2" }
+              ]
+            }
+          ],
           phone: '081234567890',
           address: 'Test address',
           subdomain: 'testbusiness',
@@ -57,7 +65,38 @@ async function testSubmitBusiness() {
     ownerName: 'Budi Santoso',
     description: 'Warung makan tradisional dengan cita rasa autentik Indonesia',
     category: 'restaurant',
-    products: 'Nasi goreng, Mie goreng, Soto ayam, Es teh manis',
+    products: [
+      {
+        name: 'Menu Utama',
+        items: [
+          {
+            name: 'Nasi Goreng',
+            price: 25000,
+            description: 'Nasi goreng spesial dengan telur dan ayam'
+          },
+          {
+            name: 'Mie Goreng',
+            price: 23000,
+            description: 'Mie goreng dengan sayuran segar'
+          },
+          {
+            name: 'Soto Ayam',
+            price: 20000,
+            description: 'Soto ayam kuah bening'
+          }
+        ]
+      },
+      {
+        name: 'Minuman',
+        items: [
+          {
+            name: 'Es Teh Manis',
+            price: 5000,
+            description: 'Teh manis dingin segar'
+          }
+        ]
+      }
+    ],
     phone: '081234567890',
     email: 'budi@warung.com',
     address: 'Jl. Sudirman No. 123, Jakarta Pusat',
@@ -66,15 +105,28 @@ async function testSubmitBusiness() {
   });
 
   try {
-    const response = await submitBusiness({
+    // Create a mock request with proper headers and method
+    const mockRequest = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: requestBody,
-      url: 'http://localhost/api/submit-business'
-    }, mockEnv, mockCtx);
+      // Adding both text() and json() methods for full compatibility
+      text: async () => requestBody,
+      json: async () => JSON.parse(requestBody),
+      body: requestBody
+    };
+
+    // Call the submit business function directly
+    const response = await submitBusiness(mockRequest, mockEnv, mockCtx);
     const result = await response.json();
     console.log('✅ Submit business result:', result);
-    return result.businessId;
+    
+    // If successful, return the business ID
+    if (!result.error) {
+      return result.businessId;
+    }
+    
+    console.error('❌ Submit business failed:', result.message);
+    return null;
   } catch (error) {
     console.error('❌ Submit business error:', error);
     return null;
