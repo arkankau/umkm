@@ -801,10 +801,30 @@ addWhatsAppButton();`;
     };
     return categoryMap[category] || category;
   }
+
+  // Generate complete HTML file with embedded CSS and JS
+  generateCompleteHTML(): string {
+    const html = this.generateHTML();
+    const css = this.generateCSS();
+    const js = this.generateJS();
+    
+    // Replace the placeholder comments with actual CSS and JS
+    const completeHTML = html
+      .replace('/* CSS will be injected here */', css)
+      .replace('// JavaScript will be injected here', js);
+    
+    return completeHTML;
+  }
 }
 
 // Utility function to generate website
 export function generateWebsite(businessData: BusinessData): GeneratedWebsite {
   const generator = new WebsiteGenerator(businessData);
   return generator.generate();
+}
+
+// Utility function to generate complete HTML file for deployment
+export function generateCompleteHTML(businessData: BusinessData): string {
+  const generator = new WebsiteGenerator(businessData);
+  return generator.generateCompleteHTML();
 } 

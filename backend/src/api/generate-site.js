@@ -98,10 +98,11 @@ export async function generateSite(request, env, ctx) {
     
     // Update business data with success status and theme info
     businessData.status = 'live';
-    businessData.websiteUrl = `https://${businessData.subdomain}.umkm.id`;
-    businessData.deployedAt = Date.now();
+    businessData.websiteUrl = deployment.url || `https://${businessData.subdomain}.umkm.id`;
+    businessData.deployedAt = deployment.deployedAt || Date.now();
     businessData.processingTime = businessData.deployedAt - businessData.processingStartedAt;
     businessData.theme = customTheme || 'default';
+    businessData.deploymentMethod = deployment.deploymentMethod || 'unknown';
     
     await env.UMKM_KV.put(
       `business:${businessId}`, 
@@ -114,6 +115,7 @@ export async function generateSite(request, env, ctx) {
       subdomain: businessData.subdomain,
       processingTime: businessData.processingTime,
       theme: businessData.theme,
+      deploymentMethod: businessData.deploymentMethod,
       message: 'Website generated and deployed successfully'
     }), {
       status: 200,

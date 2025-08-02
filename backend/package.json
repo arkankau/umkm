@@ -11,6 +11,8 @@
     "test": "node test-template-system.js",
     "test:api": "node test-simple.js",
     "test:local": "node test-local.js",
+    "test:puppeteer": "node test-puppeteer-deployment.js",
+    "test:full-deployment": "node test-full-deployment-flow.js",
     "build": "echo 'No build step needed for EdgeOne Functions'",
     "clean": "echo 'No cleanup needed'"
   },
@@ -28,7 +30,8 @@
   "license": "MIT",
   "dependencies": {
     "@11ty/eleventy": "^2.0.1",
-    "nunjucks": "^3.2.4"
+    "nunjucks": "^3.2.4",
+    "puppeteer": "^24.15.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
