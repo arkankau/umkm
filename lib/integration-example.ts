@@ -1,5 +1,6 @@
 import { BusinessData } from './api';
 import { deploymentService } from './deployment-service';
+import { generateCompleteHTML } from './website-generator';
 
 /**
  * Example: How to deploy a website using the integrated system
@@ -46,7 +47,6 @@ export async function deployBusinessWebsite(businessData: BusinessData, domain: 
  * Example: How to generate HTML without deploying
  */
 export function generateWebsiteHTML(businessData: BusinessData): string {
-  import { generateCompleteHTML } from './website-generator';
   return generateCompleteHTML(businessData);
 }
 

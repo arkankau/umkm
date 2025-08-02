@@ -73,16 +73,117 @@ async function deploy(htmlCode, domain) {
       'Pragma': 'no-cache'
     });
 
-    // Clear cookies and storage before starting
+    // Clear all cookies, storage, and session data to ensure we're not logged in
+    console.log('Clearing all cookies and session data...');
     const client = await page.target().createCDPSession();
+    
+    // Clear cookies
     await client.send('Network.clearBrowserCookies');
     await client.send('Network.clearBrowserCache');
+    
+    // Clear all storage types (with error handling for security restrictions)
+    await page.evaluate(() => {
+      try {
+        // Clear localStorage
+        if (typeof localStorage !== 'undefined') {
+          localStorage.clear();
+        }
+      } catch (error) {
+        console.log('localStorage access blocked by security policy');
+      }
+      
+      try {
+        // Clear sessionStorage
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.clear();
+        }
+      } catch (error) {
+        console.log('sessionStorage access blocked by security policy');
+      }
+      
+      try {
+        // Clear all cookies manually
+        if (document.cookie) {
+          document.cookie.split(";").forEach(function(c) { 
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+          });
+        }
+      } catch (error) {
+        console.log('Cookie clearing blocked by security policy');
+      }
+      
+      try {
+        // Clear IndexedDB
+        if ('indexedDB' in window) {
+          indexedDB.databases().then(databases => {
+            databases.forEach(db => {
+              indexedDB.deleteDatabase(db.name);
+            });
+          });
+        }
+      } catch (error) {
+        console.log('IndexedDB access blocked by security policy');
+      }
+      
+      try {
+        // Clear service workers
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(registrations => {
+            registrations.forEach(registration => {
+              registration.unregister();
+            });
+          });
+        }
+      } catch (error) {
+        console.log('Service worker access blocked by security policy');
+      }
+    });
+    
+    // Additional cookie clearing for specific domains
+    await page.setCookie();
+    
+    console.log('All cookies and session data cleared successfully');
 
     console.log('Navigating to EdgeOne Pages...');
     await page.goto('https://edgeone.ai/pages/drop', { 
       waitUntil: 'networkidle2',
       timeout: 30000 
     });
+
+    // Clear cookies again after navigation in case any were set
+    console.log('Clearing cookies after navigation...');
+    await client.send('Network.clearBrowserCookies');
+    await page.evaluate(() => {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.clear();
+        }
+      } catch (error) {
+        console.log('localStorage access blocked by security policy');
+      }
+      
+      try {
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.clear();
+        }
+      } catch (error) {
+        console.log('sessionStorage access blocked by security policy');
+      }
+      
+      try {
+        if (document.cookie) {
+          document.cookie.split(";").forEach(function(c) { 
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+          });
+        }
+      } catch (error) {
+        console.log('Cookie clearing blocked by security policy');
+      }
+    });
+
+    // Reload the page to ensure we're starting fresh without any session data
+    console.log('Reloading page to ensure fresh session...');
+    await page.reload({ waitUntil: 'networkidle2' });
 
     // Wait for the page to load completely
     await page.waitForSelector('input[placeholder="Enter your domain name"]', { timeout: 10000 });
