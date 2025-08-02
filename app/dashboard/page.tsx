@@ -19,10 +19,10 @@ const Dashboard = () => {
         <Card name='Cake Loe' url='www.onestop.com/cakeloe' preview='/image.png'/>
         <Card name='Coffee Shop' url='www.onestop.com/coffee' preview='/image.png'/>
         <Card name='Bakery Store' url='www.onestop.com/bakery' preview='/image.png'/>
-        <div className='group cursor-pointer w-[15rem] h-[16rem] bg-white/60 backdrop-blur-sm rounded-2xl relative overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border-2 border-dashed border-gray-300/50 flex flex-col justify-center items-center hover:border-purple-300/50 hover:bg-purple-50/30'>
+        <Link href='/id/create-new' className='group cursor-pointer w-[15rem] h-[16rem] bg-white/60 backdrop-blur-sm rounded-2xl relative overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border-2 border-dashed border-gray-300/50 flex flex-col justify-center items-center hover:border-purple-300/50 hover:bg-purple-50/30'>
           <div className='text-4xl text-gray-400 mb-3 group-hover:text-purple-400 transition-colors'>+</div>
           <p className='text-gray-500 font-inter font-medium group-hover:text-purple-600 transition-colors'>Add New</p>
-        </div>
+        </Link>
       </div>
     </div>
   )
