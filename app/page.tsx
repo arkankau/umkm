@@ -35,7 +35,6 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Trust indicators */}
         <div className="flex items-center gap-8 text-sm text-gray-500 font-inter">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -48,7 +47,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Features Section */}
       <div id="features" className="px-15 py-20 relative z-10">
         <div className="text-center mb-16">
           <h2 className="font-mont font-bold text-4xl mb-4">Everything you need to succeed online</h2>
