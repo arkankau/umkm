@@ -29,7 +29,7 @@ async function testPuppeteerDeployment() {
   console.log('Testing puppeteer deployment...');
   
   try {
-    const result = await puppeteerDeploy(testHtml, 'test-website');
+    const result = await puppeteerDeploy(testHtml, 'billy-joe');
     
     console.log('Deployment result:', result);
     
