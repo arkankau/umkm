@@ -1,3 +1,5 @@
+'use client';
+
 import Image from "next/image";
 import Navbar from "@/components/navbar";
 import Link from "next/link";
@@ -30,9 +32,12 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
-          <Link href="/login" className="bg-button font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:bg-black transition-colors duration-300 shadow-lg hover:shadow-xl">
+          <button 
+            onClick={() => document.getElementById('create-website')?.scrollIntoView({ behavior: 'smooth' })}
+            className="bg-button font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:bg-black transition-colors duration-300 shadow-lg hover:shadow-xl"
+          >
             Start Building Free
-          </Link>
+          </button>
           <Link href="/features" className="border-2 border-gray-300 font-mont rounded-2xl px-8 py-4 text-gray-700 text-lg font-semibold hover:border-purple-400 hover:text-purple-600 transition-colors duration-300">
             See How It Works
           </Link>
@@ -87,6 +92,20 @@ export default function Home() {
               </p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Business Form Section */}
+      <div id="create-website" className="px-15 py-20 relative z-10 bg-white">
+        <div className="text-center mb-16">
+          <h2 className="font-mont font-bold text-4xl mb-4">Create Your Website Now</h2>
+          <p className="font-inter text-xl text-gray-600 max-w-2xl mx-auto">
+            Fill out the form below and get your AI-generated website in minutes
+          </p>
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          <BusinessForm />
         </div>
       </div>
 

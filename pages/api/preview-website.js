@@ -22,12 +22,22 @@ export default async function handler(req, res) {
     }
 
     // Generate the website
-    const website = generateWebsite(businessData);
+    const website = await generateWebsite(businessData);
     
     // Create the complete HTML with embedded CSS and JS
-    const completeHTML = website.html
-      .replace('/* CSS will be injected here */', website.css)
-      .replace('// JavaScript will be injected here', website.js);
+    let completeHTML = website.html;
+    
+    // Inject CSS into the style tag
+    completeHTML = completeHTML.replace(
+      /<style>\s*\/\* CSS will be injected here \*\/\s*<\/style>/,
+      `<style>${website.css}</style>`
+    );
+    
+    // Inject JS into the script tag
+    completeHTML = completeHTML.replace(
+      /<script>\s*\/\/ JavaScript will be injected here\s*<\/script>/,
+      `<script>${website.js}</script>`
+    );
 
     // Set content type to HTML
     res.setHeader('Content-Type', 'text/html');

@@ -1,80 +1,190 @@
 import { BusinessData } from './api';
-import { FreeAIService } from './free-ai-service';
 
-export interface GeneratedWebsite {
+export interface EdgeAIResponse {
   html: string;
   css: string;
   js: string;
-  assets: {
-    images: string[];
-  };
+  success: boolean;
+  error?: string;
 }
 
-export class WebsiteGenerator {
-  private businessData: BusinessData;
-  private freeAIService: FreeAIService;
+export class EdgeAIService {
+  private apiKey: string;
+  private baseUrl: string;
 
-  constructor(businessData: BusinessData) {
-    this.businessData = businessData;
-    this.freeAIService = new FreeAIService();
+  constructor() {
+    this.apiKey = process.env.EDGEAI_API_KEY || '';
+    this.baseUrl = process.env.EDGEAI_BASE_URL || 'https://api.cloudflare.com/client/v4/ai/run';
   }
 
-  async generate(): Promise<GeneratedWebsite> {
+  async generateWebsite(businessData: BusinessData): Promise<EdgeAIResponse> {
     try {
-      // Use Free AI to generate website content
-      console.log('Generating website with Free AI...');
-      const aiWebsite = await this.freeAIService.generateWebsite(this.businessData);
-      
-      if (aiWebsite.success) {
-        return {
-          html: aiWebsite.html,
-          css: aiWebsite.css,
-          js: aiWebsite.js,
-          assets: {
-            images: this.generateImages()
-          }
-        };
-      } else {
-        throw new Error(aiWebsite.error || 'Free AI generation failed');
+      if (!this.apiKey) {
+        console.log('EdgeAI API key not found, using fallback generation');
+        return this.generateFallbackWebsite(businessData);
       }
-    } catch (error) {
-      console.error('Free AI generation failed, falling back to template:', error);
-      // Fallback to template-based generation
+
+      const prompt = this.createWebsitePrompt(businessData);
+      
+      // Call EdgeAI API
+      const response = await fetch(`${this.baseUrl}/@cf/meta/llama-3.1-8b-instruct`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a professional web developer specializing in creating modern, responsive websites for small businesses. Generate complete HTML, CSS, and JavaScript code that is production-ready.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          stream: false
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`EdgeAI API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.result || !data.result.response) {
+        throw new Error('Invalid response from EdgeAI API');
+      }
+
+      // Parse the AI response to extract HTML, CSS, and JS
+      const aiResponse = data.result.response;
+      const parsed = this.parseAIResponse(aiResponse);
+      
       return {
-        html: this.generateHTML(),
-        css: this.generateCSS(),
-        js: this.generateJS(),
-        assets: {
-          images: this.generateImages()
-        }
+        html: parsed.html,
+        css: parsed.css,
+        js: parsed.js,
+        success: true
+      };
+
+    } catch (error) {
+      console.error('EdgeAI generation failed:', error);
+      return this.generateFallbackWebsite(businessData);
+    }
+  }
+
+  private createWebsitePrompt(businessData: BusinessData): string {
+    const { businessName, ownerName, description, category, products, phone, address, email, whatsapp, instagram } = businessData;
+    
+    const categoryDisplay = this.getCategoryDisplayName(category);
+    const colors = this.getCategoryColors(category);
+    
+    return `Create a modern, professional website for a ${categoryDisplay} business with the following details:
+
+BUSINESS INFORMATION:
+- Business Name: ${businessName}
+- Owner: ${ownerName}
+- Description: ${description}
+- Category: ${categoryDisplay}
+- Products/Services: ${products}
+- Phone: ${phone}
+- Address: ${address}
+- Email: ${email || 'Not provided'}
+- WhatsApp: ${whatsapp || 'Not provided'}
+- Instagram: ${instagram || 'Not provided'}
+
+DESIGN REQUIREMENTS:
+- Use modern, responsive design principles
+- Color scheme: Primary ${colors.primary}, Secondary ${colors.secondary}
+- Include smooth animations and transitions
+- Mobile-first approach
+- Professional typography using Inter font
+- Include Font Awesome icons
+
+WEBSITE SECTIONS:
+1. Navigation bar with logo and menu
+2. Hero section with business name and description
+3. About section with business details
+4. Products/Services section
+5. Contact section with all contact information
+6. Footer with business info and social links
+
+TECHNICAL REQUIREMENTS:
+- Generate complete, valid HTML5 code
+- Include embedded CSS with modern styling
+- Include JavaScript for interactivity
+- Make it SEO-friendly
+- Ensure accessibility standards
+- Include contact form functionality
+- Add smooth scrolling navigation
+- Include loading animations
+
+Please generate the complete website code in this exact format:
+
+===HTML===
+[Complete HTML code here]
+===CSS===
+[Complete CSS code here]
+===JS===
+[Complete JavaScript code here]
+
+Make sure the website looks professional and modern, suitable for a ${categoryDisplay} business.`;
+  }
+
+  private parseAIResponse(response: string): { html: string; css: string; js: string } {
+    try {
+      // Try to parse structured response
+      const htmlMatch = response.match(/===HTML===\s*([\s\S]*?)(?===CSS===|===JS===|$)/i);
+      const cssMatch = response.match(/===CSS===\s*([\s\S]*?)(?===HTML===|===JS===|$)/i);
+      const jsMatch = response.match(/===JS===\s*([\s\S]*?)(?===HTML===|===CSS===|$)/i);
+
+      if (htmlMatch && cssMatch && jsMatch) {
+        return {
+          html: htmlMatch[1].trim(),
+          css: cssMatch[1].trim(),
+          js: jsMatch[1].trim()
+        };
+      }
+
+      // Fallback: try to extract code blocks
+      const codeBlocks = response.match(/```(?:html|css|javascript|js)?\s*([\s\S]*?)```/g);
+      if (codeBlocks && codeBlocks.length >= 3) {
+        return {
+          html: codeBlocks[0].replace(/```(?:html)?\s*/, '').replace(/```$/, '').trim(),
+          css: codeBlocks[1].replace(/```(?:css)?\s*/, '').replace(/```$/, '').trim(),
+          js: codeBlocks[2].replace(/```(?:javascript|js)?\s*/, '').replace(/```$/, '').trim()
+        };
+      }
+
+      // If parsing fails, return the response as HTML and generate fallback CSS/JS
+      return {
+        html: response,
+        css: this.generateFallbackCSS(),
+        js: this.generateFallbackJS()
+      };
+
+    } catch (error) {
+      console.error('Failed to parse AI response:', error);
+      return {
+        html: response,
+        css: this.generateFallbackCSS(),
+        js: this.generateFallbackJS()
       };
     }
   }
 
-  private generateImages(): string[] {
-    // Generate placeholder images based on category
-    const { category } = this.businessData;
-    const imageCount = Math.floor(Math.random() * 3) + 2; // 2-4 images
-    const images = [];
+  private generateFallbackWebsite(businessData: BusinessData): EdgeAIResponse {
+    const { businessName, ownerName, description, category, products, phone, address } = businessData;
+    const colors = this.getCategoryColors(category);
     
-    for (let i = 0; i < imageCount; i++) {
-      images.push(`https://picsum.photos/400/300?random=${Date.now() + i}`);
-    }
-    
-    return images;
-  }
-
-  // Fallback methods for template-based generation
-  private generateHTML(): string {
-    const { businessName, ownerName, description, category, products, phone, address } = this.businessData;
-    const categoryDisplay = this.getCategoryDisplayName(category);
-    
-    return `<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${businessName} - ${categoryDisplay}</title>
+    <title>${businessName} - ${this.getCategoryDisplayName(category)}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -164,12 +274,16 @@ export class WebsiteGenerator {
     </script>
 </body>
 </html>`;
+
+    return {
+      html,
+      css: this.generateFallbackCSS(),
+      js: this.generateFallbackJS(),
+      success: true
+    };
   }
 
-  private generateCSS(): string {
-    const { category } = this.businessData;
-    const colors = this.getCategoryColors(category);
-    
+  private generateFallbackCSS(): string {
     return `* {
     margin: 0;
     padding: 0;
@@ -213,7 +327,7 @@ body {
     gap: 10px;
     font-size: 1.5rem;
     font-weight: 700;
-    color: ${colors.primary};
+    color: #3498db;
 }
 
 .nav-menu {
@@ -230,14 +344,14 @@ body {
 }
 
 .nav-menu a:hover {
-    color: ${colors.primary};
+    color: #3498db;
 }
 
 .hero {
     min-height: 100vh;
     display: flex;
     align-items: center;
-    background: linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%);
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
     color: white;
     padding: 100px 0;
     text-align: center;
@@ -266,7 +380,7 @@ body {
 
 .btn-primary {
     background: white;
-    color: ${colors.primary};
+    color: #3498db;
 }
 
 .btn-secondary {
@@ -275,19 +389,15 @@ body {
     border: 2px solid white;
 }
 
-.about, .products, .contact {
+.section {
     padding: 100px 0;
-}
-
-.about {
-    background: #f8f9fa;
 }
 
 .section h2 {
     font-size: 2.5rem;
     text-align: center;
     margin-bottom: 3rem;
-    color: ${colors.primary};
+    color: #3498db;
 }
 
 .products-grid {
@@ -311,7 +421,7 @@ body {
 
 .product-card i {
     font-size: 3rem;
-    color: ${colors.primary};
+    color: #3498db;
     margin-bottom: 1rem;
 }
 
@@ -333,7 +443,7 @@ body {
 
 .contact-item i {
     font-size: 2rem;
-    color: ${colors.primary};
+    color: #3498db;
 }
 
 .footer {
@@ -362,7 +472,7 @@ body {
 }`;
   }
 
-  private generateJS(): string {
+  private generateFallbackJS(): string {
     return `// Smooth scrolling for navigation links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -447,8 +557,4 @@ window.addEventListener('load', () => {
     };
     return colors[category] || { primary: '#3498db', secondary: '#2980b9' };
   }
-}
-
-export async function generateWebsite(businessData: BusinessData): Promise<GeneratedWebsite> {
-  return await new WebsiteGenerator(businessData).generate();
 } 

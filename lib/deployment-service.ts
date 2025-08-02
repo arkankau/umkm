@@ -50,7 +50,7 @@ export class DeploymentService {
 
       // Generate website files
       console.log(`Generating website for: ${businessData.businessName}`);
-      const website = generateWebsite(businessData);
+      const website = await generateWebsite(businessData);
 
       // Convert to EdgeOne files
       const files: EdgeOneFile[] = [
