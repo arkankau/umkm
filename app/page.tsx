@@ -5,18 +5,16 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-bg via-purple-50 to-blue-50 relative">
-      {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-[#C6AFFF] opacity-20 rounded-full blur-3xl"></div>
         <div className="absolute bottom-40 right-10 w-96 h-96 bg-blue-300 opacity-15 rounded-full blur-3xl"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-300 opacity-10 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative z-10">
+      <div className="relative z-20">
         <Navbar/>
       </div>
 
-      {/* Hero Section */}
       <div className="hero px-15 flex flex-col items-center justify-center mt-3 text-center relative z-10">
         
         <h1 className="font-mont font-bold text-5xl leading-tight mb-6 max-w-4xl">
@@ -25,7 +23,7 @@ export default function Home() {
         </h1>
         
         <p className="font-inter text-lg text-gray-600 mb-8 max-w-2xl leading-relaxed">
-          Join thousands of small businesses who've transformed their online presence with our AI-powered website builder. No technical skills needed.
+          Join businesses who've transformed their online presence with our AI-powered website builder. No technical skills needed.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
