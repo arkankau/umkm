@@ -1,5 +1,6 @@
 // Integrated Template System for UMKM Go Digital
 // Combines Eleventy-style templates with color customization
+import { renderTemplate } from './template-renderer.js';
 
 // Color schemes for different business types
 const COLOR_SCHEMES = {
@@ -88,11 +89,56 @@ export function generateCSS(colorScheme) {
       box-sizing: border-box; 
     }
     
+    :root {
+      --primary: ${colorScheme.primary};
+      --secondary: ${colorScheme.secondary};
+      --accent: ${colorScheme.accent};
+      --background: ${colorScheme.background};
+      --text: ${colorScheme.text};
+      --success: ${colorScheme.success};
+    }
+    
     body { 
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
       line-height: 1.6; 
-      color: ${colorScheme.text}; 
-      background-color: ${colorScheme.background};
+      color: var(--text); 
+      background-color: var(--background);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .antialiased {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .font-sans {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .max-w-7xl {
+      max-width: 80rem;
+    }
+
+    .mx-auto {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .px-4 {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .py-12 {
+      padding-top: 3rem;
+      padding-bottom: 3rem;
+    }
+
+    .space-x-4 > * + * {
+      margin-left: 1rem;
     }
     
     .header { 
@@ -177,25 +223,48 @@ export function generateCSS(colorScheme) {
     
     .btn { 
       display: inline-block; 
-      padding: 12px 24px; 
-      background: ${colorScheme.primary}; 
+      padding: 0.75rem 1.5rem; 
+      background: var(--primary); 
       color: white; 
       text-decoration: none; 
-      border-radius: 5px; 
-      margin: 0.5rem; 
-      transition: background-color 0.2s ease-in-out;
+      border-radius: 0.375rem; 
+      font-weight: 500;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      transition: all 0.15s ease-in-out;
+      border: 2px solid transparent;
     }
     
     .btn:hover { 
-      background: ${colorScheme.secondary}; 
+      background: var(--secondary);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: none;
     }
     
     .btn-success {
-      background: ${colorScheme.success};
+      background: var(--success);
+      border-color: var(--success);
     }
     
     .btn-success:hover {
-      background: ${colorScheme.success}dd;
+      background: transparent;
+      color: var(--success);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-outline:hover {
+      background: var(--primary);
+      color: white;
     }
     
     .footer { 
@@ -277,13 +346,76 @@ function getBaseTemplate(colorScheme, businessData) {
     <style>
         ${generateCSS(colorScheme)}
     </style>
+    <script>
+      // Mobile menu toggle
+      document.addEventListener('DOMContentLoaded', function() {
+        const menuButton = document.querySelector('.mobile-menu-button');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        
+        if (menuButton && mobileMenu) {
+          menuButton.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
+          });
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+          anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+              target.scrollIntoView({
+                behavior: 'smooth'
+              });
+              // Close mobile menu if open
+              mobileMenu.classList.add('hidden');
+            }
+          });
+        });
+      });
+    </script>
 </head>
-<body>
+<body class="font-sans antialiased">
     <header class="header">
-        <div class="container">
-            <img src="{{LOGO_URL}}" alt="{{BUSINESS_NAME}}" class="logo">
-            <h1>{{BUSINESS_NAME}}</h1>
-            <p>{{TAGLINE}}</p>
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <img src="{{LOGO_URL}}" alt="{{BUSINESS_NAME}}" class="logo">
+                    <h1 class="text-xl font-bold text-white ml-2">{{BUSINESS_NAME}}</h1>
+                </div>
+                
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#beranda" class="text-white hover:text-gray-200 px-3 py-2 rounded-md text-sm font-medium">Beranda</a>
+                        <a href="#produk" class="text-white hover:text-gray-200 px-3 py-2 rounded-md text-sm font-medium">Produk</a>
+                        <a href="#kontak" class="text-white hover:text-gray-200 px-3 py-2 rounded-md text-sm font-medium">Kontak</a>
+                    </div>
+                </div>
+                
+                <div class="md:hidden">
+                    <button type="button" class="mobile-menu-button bg-transparent p-2 rounded-md text-white hover:text-gray-200 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mobile-menu hidden md:hidden">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <a href="#beranda" class="text-white hover:text-gray-200 block px-3 py-2 rounded-md text-base font-medium">Beranda</a>
+                    <a href="#produk" class="text-white hover:text-gray-200 block px-3 py-2 rounded-md text-base font-medium">Produk</a>
+                    <a href="#kontak" class="text-white hover:text-gray-200 block px-3 py-2 rounded-md text-base font-medium">Kontak</a>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="container text-center py-12">
+            <h1 class="text-4xl font-bold text-white mb-4">{{BUSINESS_NAME}}</h1>
+            <p class="text-xl text-white mb-8">{{TAGLINE}}</p>
+            <div class="flex justify-center space-x-4">
+                {{HERO_BUTTONS}}
+            </div>
         </div>
     </header>
 
@@ -318,6 +450,33 @@ function getBaseTemplate(colorScheme, businessData) {
 }
 
 // Restaurant template
+export async function loadTemplate(category, businessData, colorScheme) {
+  try {
+    // Get the appropriate color scheme
+    const baseScheme = COLOR_SCHEMES[category] || COLOR_SCHEMES.other;
+    const finalScheme = colorScheme ? { ...baseScheme, ...CUSTOM_COLORS[colorScheme] } : baseScheme;
+    
+    // Use the template renderer with an output directory
+    const outputDir = path.join(process.cwd(), 'generated', businessData.businessName.toLowerCase().replace(/\s+/g, '-'));
+    await fs.mkdir(outputDir, { recursive: true });
+    
+    return await renderTemplate(category, businessData, finalScheme, outputDir);
+  } catch (error) {
+    console.error('Template loading failed:', error);
+    // Fallback to old template system
+    switch (category) {
+      case 'restaurant':
+        return getRestaurantTemplate(businessData, colorScheme);
+      case 'retail':
+        return getRetailTemplate(businessData, colorScheme);
+      case 'service':
+        return getServiceTemplate(businessData, colorScheme);
+      default:
+        return getDefaultTemplate(businessData, colorScheme);
+    }
+  }
+}
+
 export function getRestaurantTemplate(businessData, colorScheme) {
   // Normalize data structure
   const normalizedData = {
@@ -377,8 +536,9 @@ export function getRestaurantTemplate(businessData, colorScheme) {
     .replace('{{CATEGORY_DISPLAY}}', 'Restoran & Kuliner')
     .replace('{{TAGLINE}}', businessData.tagline || 'Nikmati hidangan lezat dengan cita rasa autentik')
     .replace('{{HERO_BUTTONS}}', `
-      <a href="#menu" class="btn">Lihat Menu</a>
+      <a href="#menu" class="btn btn-outline">Lihat Menu</a>
       ${businessData.whatsapp ? `<a href="{{WHATSAPP_URL}}" class="btn btn-success" target="_blank">💬 WhatsApp</a>` : ''}
+      ${businessData.instagram ? `<a href="{{INSTAGRAM_URL}}" class="btn" target="_blank">📸 Instagram</a>` : ''}
     `)
     .replace('{{CONTENT_SECTIONS}}', contentSections);
 }
@@ -723,26 +883,26 @@ function generateInstagramUrl(instagram) {
 }
 
 // Main template loading function
-export async function loadTemplate(category, businessData, customTheme = null) {
-  const colorScheme = getColorScheme(category, customTheme);
+// export async function loadTemplate(category, businessData, customTheme = null) {
+//   const colorScheme = getColorScheme(category, customTheme);
   
-  let template;
-  switch (category) {
-    case 'restaurant':
-      template = getRestaurantTemplate(businessData, colorScheme);
-      break;
-    case 'retail':
-      template = getRetailTemplate(businessData, colorScheme);
-      break;
-    case 'service':
-      template = getServiceTemplate(businessData, colorScheme);
-      break;
-    default:
-      template = getRetailTemplate(businessData, colorScheme); // Default to retail
-  }
+//   let template;
+//   switch (category) {
+//     case 'restaurant':
+//       template = getRestaurantTemplate(businessData, colorScheme);
+//       break;
+//     case 'retail':
+//       template = getRetailTemplate(businessData, colorScheme);
+//       break;
+//     case 'service':
+//       template = getServiceTemplate(businessData, colorScheme);
+//       break;
+//     default:
+//       template = getRetailTemplate(businessData, colorScheme); // Default to retail
+//   }
   
-  return processTemplate(template, businessData);
-}
+//   return processTemplate(template, businessData);
+// }
 
 // Get available color themes
 export function getAvailableThemes() {

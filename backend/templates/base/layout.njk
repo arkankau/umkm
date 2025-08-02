@@ -19,15 +19,29 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="{{ page.cssPath }}">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Analytics -->
-    <script async src="/analytics.js"></script>
+    <!-- Theme Variables -->
+    <style>
+        :root {
+            --color-primary: {{ page.theme.primary }};
+            --color-secondary: {{ page.theme.secondary }};
+            --color-accent: {{ page.theme.accent }};
+            --color-background: {{ page.theme.background }};
+            --color-text: {{ page.theme.text }};
+            --color-success: {{ page.theme.success }};
+        }
+    </style>
+    
+    <!-- Category-specific assets -->
+    {% if page.categoryAssetsPath %}
+    <link rel="stylesheet" href="{{ page.categoryAssetsPath }}/styles.css">
+    {% endif %}
 </head>
 <body class="font-sans antialiased">
     <!-- Header -->
@@ -138,6 +152,9 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="/scripts.js"></script>
+    <script src="{{ page.jsPath }}"></script>
+    {% if page.categoryAssetsPath %}
+    <script src="{{ page.categoryAssetsPath }}/scripts.js"></script>
+    {% endif %}
 </body>
 </html> 

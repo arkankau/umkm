@@ -13,7 +13,48 @@ const sampleBusinessData = {
   ownerName: 'Budi Santoso',
   description: 'Warung makan tradisional yang menyajikan berbagai hidangan Indonesia dengan cita rasa yang memukau. Berdiri sejak 2010, kami berkomitmen untuk memberikan pengalaman makan yang nyaman dan lezat.',
   category: 'restaurant',
-  products: 'Nasi goreng, Mie goreng, Sate ayam, Es teh manis',
+  products: [
+    {
+      name: 'Makanan Utama',
+      items: [
+        {
+          name: 'Nasi Goreng Spesial',
+          description: 'Nasi goreng dengan telur, ayam, dan sayuran segar',
+          price: 25000,
+          available: true
+        },
+        {
+          name: 'Mie Goreng',
+          description: 'Mie goreng dengan bumbu khas',
+          price: 22000,
+          available: true
+        },
+        {
+          name: 'Sate Ayam',
+          description: 'Sate ayam dengan bumbu kacang',
+          price: 30000,
+          available: true
+        }
+      ]
+    },
+    {
+      name: 'Minuman',
+      items: [
+        {
+          name: 'Es Teh Manis',
+          description: 'Teh manis dingin',
+          price: 5000,
+          available: true
+        },
+        {
+          name: 'Es Jeruk',
+          description: 'Jeruk peras segar',
+          price: 8000,
+          available: true
+        }
+      ]
+    }
+  ],
   phone: '08123456789',
   email: 'info@warungsederhana.com',
   address: 'Jl. Sudirman No. 123, Jakarta Pusat',
@@ -153,18 +194,23 @@ async function testTemplateSystem() {
       tagline: 'Temukan produk berkualitas dengan harga terbaik',
       products: [
         {
-          name: 'Kemeja Pria Casual',
-          description: 'Kemeja pria dengan bahan katun yang nyaman',
-          price: 150000,
-          image: '/images/kemeja-pria.jpg',
-          available: true
-        },
-        {
-          name: 'Dress Wanita Elegant',
-          description: 'Dress wanita dengan desain yang elegan',
-          price: 250000,
-          image: '/images/dress-wanita.jpg',
-          available: true
+          name: 'Pakaian',
+          items: [
+            {
+              name: 'Kemeja Pria Casual',
+              description: 'Kemeja pria dengan bahan katun yang nyaman',
+              price: 150000,
+              image: '/images/kemeja-pria.jpg',
+              available: true
+            },
+            {
+              name: 'Dress Wanita Elegant',
+              description: 'Dress wanita dengan desain yang elegan',
+              price: 250000,
+              image: '/images/dress-wanita.jpg',
+              available: true
+            }
+          ]
         }
       ]
     };
@@ -190,29 +236,39 @@ async function testTemplateSystem() {
       ...sampleBusinessData,
       category: 'service',
       tagline: 'Layanan profesional untuk memenuhi kebutuhan Anda',
-      services: [
+      products: [
         {
-          name: 'Konsultasi Digital Marketing',
-          description: 'Layanan konsultasi untuk mengembangkan strategi digital marketing',
-          icon: '💼',
-          price: 500000,
-          features: [
-            'Analisis bisnis',
-            'Strategi pengembangan',
-            'Laporan komprehensif',
-            'Follow-up 1 bulan'
+          name: 'Marketing Services',
+          items: [
+            {
+              name: 'Konsultasi Digital Marketing',
+              description: 'Layanan konsultasi untuk mengembangkan strategi digital marketing',
+              icon: '💼',
+              price: 500000,
+              features: [
+                'Analisis bisnis',
+                'Strategi pengembangan',
+                'Laporan komprehensif',
+                'Follow-up 1 bulan'
+              ]
+            }
           ]
         },
         {
-          name: 'Social Media Management',
-          description: 'Layanan pengelolaan social media untuk bisnis Anda',
-          icon: '📱',
-          price: 1000000,
-          features: [
-            'Content creation',
-            'Posting schedule',
-            'Engagement management',
-            'Analytics report'
+          name: 'Social Media',
+          items: [
+            {
+              name: 'Social Media Management',
+              description: 'Layanan pengelolaan social media untuk bisnis Anda',
+              icon: '📱',
+              price: 1000000,
+              features: [
+                'Content creation',
+                'Posting schedule',
+                'Engagement management',
+                'Analytics report'
+              ]
+            }
           ]
         }
       ],

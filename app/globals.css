@@ -1,26 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme{
+  --font-mont: 'Montserrat', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+  --color-bg: #F1F0EE;
+  --color-button: #3D3A48;
+  --color-secondary: #E1DDD6;
+  --color-stroke: #B9B4AA;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+body{
+  background: var(--color-bg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Copy button animations */
+.copy-button.copied {
+  background-color: #10b981 !important; /* Green color when copied */
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.copy-button.copied .check-icon {
+  opacity: 1 !important;
+}
+
+.copy-button.copied span {
+  opacity: 0;
+}
+
+.copy-button {
+  position: relative;
+}
+
+.copy-button span {
+  transition: opacity 0.2s;
+}
+
+.copy-button .check-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Dark theme for copy boxes */
+.copy-box {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.copy-box:hover {
+  border-color: #4b5563 !important;
+  box-shadow: 0 0 0 1px rgba(75, 85, 99, 0.3);
+}
+
+.copy-box code {
+  color: #f3f4f6 !important;
 }
