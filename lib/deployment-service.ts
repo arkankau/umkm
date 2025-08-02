@@ -1,5 +1,6 @@
 import { BusinessData } from './api';
 import { generateCompleteHTML } from './website-generator';
+import { deployWithPuppeteer } from './puppeteer-deploy';
 
 export interface DeploymentResult {
   success: boolean;
@@ -11,21 +12,8 @@ export interface DeploymentResult {
 }
 
 export class DeploymentService {
-  private puppeteerDeploy: any;
-
   constructor() {
-    // Import puppeteer deploy function
-    this.puppeteerDeploy = null;
-  }
-
-  async initialize() {
-    try {
-      // Dynamic import for puppeteer deployment
-      const puppeteerModule = await import('../backend/src/api/puppeteer-deploy.js');
-      this.puppeteerDeploy = puppeteerModule.default;
-    } catch (error) {
-      console.error('Failed to load puppeteer deployment:', error);
-    }
+    // No initialization needed for API-based deployment
   }
 
   async deployWebsite(businessData: BusinessData, domain: string): Promise<DeploymentResult> {
@@ -34,17 +22,9 @@ export class DeploymentService {
       console.log('Generating website HTML...');
       const htmlContent = generateCompleteHTML(businessData);
       
-      if (!this.puppeteerDeploy) {
-        await this.initialize();
-      }
-
-      if (!this.puppeteerDeploy) {
-        throw new Error('Puppeteer deployment not available');
-      }
-
-      // Deploy using puppeteer
+      // Deploy using puppeteer directly
       console.log('Deploying website using puppeteer...');
-      const result = await this.puppeteerDeploy(htmlContent, domain);
+      const result = await deployWithPuppeteer(htmlContent, domain);
 
       return {
         success: result.success,
@@ -68,8 +48,13 @@ export class DeploymentService {
   // Alternative deployment method using API (fallback)
   async deployViaAPI(businessData: BusinessData, domain: string): Promise<DeploymentResult> {
     try {
+      // Generate complete HTML file
+      console.log('Generating website HTML for API deployment...');
+      const htmlContent = generateCompleteHTML(businessData);
+      
       // This would be the API-based deployment method
-      // For now, return a mock result
+      // For now, return a mock result with the generated HTML
+      console.log('API deployment successful (mock)');
       return {
         success: true,
         url: `https://${domain}.umkm.id`,
@@ -99,6 +84,26 @@ export class DeploymentService {
     } else {
       console.log('Puppeteer deployment failed, trying API fallback...');
       return await this.deployViaAPI(businessData, domain);
+    }
+  }
+
+  // Get deployment status for a business
+  async getDeploymentStatus(businessId: string): Promise<DeploymentResult | null> {
+    try {
+      console.log(`Getting deployment status for business: ${businessId}`);
+      
+      // For now, return a mock successful deployment status
+      // In a real implementation, this would check the actual deployment status
+      return {
+        success: true,
+        url: `https://${businessId}.umkm.id`,
+        domain: businessId,
+        deployedAt: Date.now(),
+        deploymentMethod: 'puppeteer'
+      };
+    } catch (error) {
+      console.error('Error getting deployment status:', error);
+      return null;
     }
   }
 }
