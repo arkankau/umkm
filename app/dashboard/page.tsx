@@ -7,20 +7,21 @@ const Dashboard = () => {
   return (
     <div>
       <NavDash/>
-      <div className="profile flex gap-3  items-center justify-start px-15">
-        <div className="image rounded-full  bg-gray-500 w-20 h-20"></div>
-        <div className="information  font-mont">
+      <div className="profile flex flex-col sm:flex-row gap-4 sm:gap-3 items-center sm:items-center justify-center sm:justify-start px-4 sm:px-8 lg:px-15 py-6">
+        <div className="image rounded-full bg-gray-500 w-20 h-20"></div>
+        <div className="information font-mont text-center sm:text-left">
             <h2 className='text-lg font-bold'>Username</h2>
-            <h3 className='text-sm '>user@gmail.com</h3>
-            <Link className='px-4 py-1 bg-button text-white rounded-lg text-xs' href='/settings'>Settings</Link>
+            <h3 className='text-sm mb-2 sm:mb-1'>user@gmail.com</h3>
+            <Link className='px-4 py-1 bg-button text-white rounded-lg text-xs hover:bg-black transition-colors' href='/settings'>Settings</Link>
         </div>
       </div>
-      <div className="dashboard grid grid-cols-3 gap-6 px-15 py-8">
+      <div className="dashboard grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 sm:px-8 lg:px-15 py-8">
         <Card name='Cake Loe' url='www.onestop.com/cakeloe' preview='/image.png'/>
         <Card name='Coffee Shop' url='www.onestop.com/coffee' preview='/image.png'/>
-        <div className='flex flex-col font-inter justify-center items-center w-[15rem] h-[12rem] bg-[#E9E4DA] rounded-xl border-2 border-dashed border-gray-400 cursor-pointer hover:bg-gray-200 transition-colors'>
-          <div className='text-6xl text-gray-500 mb-2'>+</div>
-          <p className='text-gray-600 font-medium'>Add New</p>
+        <Card name='Bakery Store' url='www.onestop.com/bakery' preview='/image.png'/>
+        <div className='group cursor-pointer w-[15rem] h-[16rem] bg-white/60 backdrop-blur-sm rounded-2xl relative overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border-2 border-dashed border-gray-300/50 flex flex-col justify-center items-center hover:border-purple-300/50 hover:bg-purple-50/30'>
+          <div className='text-4xl text-gray-400 mb-3 group-hover:text-purple-400 transition-colors'>+</div>
+          <p className='text-gray-500 font-inter font-medium group-hover:text-purple-600 transition-colors'>Add New</p>
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-bg via-purple-50 to-blue-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br ">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-[#C6AFFF] opacity-20 rounded-full blur-3xl"></div>
