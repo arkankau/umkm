@@ -1,6 +1,8 @@
 -- Create businesses table for Untuk Mu Karya Mu
 CREATE TABLE IF NOT EXISTS businesses (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    business_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+    user_id UUID,
     business_name VARCHAR(255) NOT NULL,
     owner_name VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
@@ -21,6 +23,8 @@ CREATE TABLE IF NOT EXISTS businesses (
 );
 
 -- Create index for faster queries
+CREATE INDEX IF NOT EXISTS idx_businesses_business_id ON businesses(business_id);
+CREATE INDEX IF NOT EXISTS idx_businesses_user_id ON businesses(user_id);
 CREATE INDEX IF NOT EXISTS idx_businesses_subdomain ON businesses(subdomain);
 CREATE INDEX IF NOT EXISTS idx_businesses_status ON businesses(status);
 CREATE INDEX IF NOT EXISTS idx_businesses_created_at ON businesses(created_at);
@@ -87,4 +91,10 @@ INSERT INTO businesses (
     '@tokomaju',
     'live'
 )
-ON CONFLICT DO NOTHING; 
+ON CONFLICT DO NOTHING;
+
+-- Migration: Add missing columns to existing businesses table (run this if table already exists)
+-- ALTER TABLE businesses ADD COLUMN IF NOT EXISTS business_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL;
+-- ALTER TABLE businesses ADD COLUMN IF NOT EXISTS user_id UUID;
+-- CREATE INDEX IF NOT EXISTS idx_businesses_business_id ON businesses(business_id);
+-- CREATE INDEX IF NOT EXISTS idx_businesses_user_id ON businesses(user_id); 
