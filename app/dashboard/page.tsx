@@ -42,6 +42,7 @@ const Dashboard = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [businessesLoading, setBusinessesLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [viewMode, setViewMode] = useState<'websites' | 'businesses'>('websites');
   const router = useRouter();
 
   // Handle hydration
@@ -84,29 +85,87 @@ const Dashboard = () => {
     return () => subscription.unsubscribe();
   }, [router]);
 
+  // Refetch when viewMode changes
+  useEffect(() => {
+    if (user) {
+      fetchBusinesses();
+    }
+  }, [viewMode, user]);
+
   const fetchBusinesses = async () => {
     try {
       setBusinessesLoading(true);
-      const response = await fetch('/api/list-businesses');
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API Error:', errorData);
-        // If it's a database error, show a helpful message
-        if (errorData.error === 'Database Error') {
-          console.log('Database table not set up yet. Please run the SQL script in Supabase dashboard.');
+      if (viewMode === 'businesses') {
+        // Fetch from businessesNeo table
+        const { data: businessesData, error } = await supabaseClient
+          .from('businessesNeo')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error fetching businesses:', error);
+          setBusinesses([]);
+          return;
         }
-        setBusinesses([]);
-        return;
+        
+        // Transform to match Business interface
+        const transformedBusinesses = businessesData.map((business: any) => ({
+          id: business.businessId,
+          businessName: business.businessName,
+          ownerName: business.ownerName,
+          description: business.description,
+          category: business.category,
+          products: business.products,
+          phone: business.phone,
+          email: business.email,
+          address: business.address,
+          whatsapp: business.whatsapp,
+          instagram: business.instagram,
+          logoUrl: business.logoUrl,
+          websiteUrl: business.websiteUrl,
+          subdomain: business.businessId,
+          status: business.websiteGenerated ? 'live' : 'not-generated',
+          createdAt: new Date(business.created_at).getTime(),
+          deployedAt: business.deployed_at ? new Date(business.deployed_at).getTime() : undefined,
+          updatedAt: new Date(business.updated_at || business.created_at).getTime()
+        }));
+        
+        setBusinesses(transformedBusinesses);
+      } else {
+        // Fetch from original API for websites view
+        const response = await fetch('/api/list-businesses');
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('API Error:', errorData);
+          if (errorData.error === 'Database Error') {
+            console.log('Database table not set up yet. Please run the SQL script in Supabase dashboard.');
+          }
+          setBusinesses([]);
+          return;
+        }
+        
+        const data = await response.json();
+        setBusinesses(data.businesses || []);
       }
-      
-      const data = await response.json();
-      setBusinesses(data.businesses || []);
     } catch (error) {
       console.error('Error fetching businesses:', error);
       setBusinesses([]);
     } finally {
       setBusinessesLoading(false);
+    }
+  };
+
+  const handleBusinessClick = (business: Business) => {
+    if (viewMode === 'businesses') {
+      // Route to business edit page
+      router.push(`/${user?.id}/${business.id}`);
+    } else {
+      // Route to website preview
+      if (business.websiteUrl) {
+        window.open(business.websiteUrl, '_blank');
+      }
     }
   };
 
@@ -170,23 +229,59 @@ const Dashboard = () => {
             </div>
         </div>
       </div>
+      {/* View Mode Toggle */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-15 py-4">
+        <div className="flex justify-center mb-6">
+          <div className="bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+            <button
+              onClick={() => setViewMode('websites')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'websites'
+                  ? 'bg-green-600 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Websites
+            </button>
+            <button
+              onClick={() => setViewMode('businesses')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'businesses'
+                  ? 'bg-green-600 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Businesses
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="dashboard max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 sm:px-8 lg:px-15 py-8 md:justify-items-start justify-items-center">
         {businessesLoading ? (
           <div className="col-span-full flex justify-center items-center py-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
-              <p className="text-gray-600 font-inter">Loading your businesses...</p>
+              <p className="text-gray-600 font-inter">Loading your {viewMode}...</p>
             </div>
           </div>
         ) : (
           <>
             {businesses.map((business) => (
-              <Card 
+              <div
                 key={business.id}
-                name={business.businessName} 
-                url={business.websiteUrl || `www.untukmukaryamu.com/${business.subdomain || business.businessName.toLowerCase().replace(/\s+/g, '-')}`}
-                preview='/image.png'
-              />
+                onClick={() => handleBusinessClick(business)}
+                className="cursor-pointer"
+              >
+                <Card 
+                  name={business.businessName} 
+                  url={viewMode === 'websites' 
+                    ? (business.websiteUrl || `www.untukmukaryamu.com/${business.subdomain || business.businessName.toLowerCase().replace(/\s+/g, '-')}`)
+                    : `${business.ownerName} • ${business.category}`
+                  }
+                  preview='/image.png'
+                />
+              </div>
             ))}
             <Link href='/id/create-new' className='group cursor-pointer w-[15rem] h-[16rem] bg-white rounded-2xl relative overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border-2 border-dashed border-gray-300 flex flex-col justify-center items-center hover:border-green-300 hover:bg-green-50'>
               <div className='text-4xl text-gray-400 mb-3 group-hover:text-green-600 transition-colors'>+</div>
@@ -211,11 +306,16 @@ const Dashboard = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
             </div>
-            <h3 className="font-mont font-semibold text-lg text-gray-600 mb-2">No businesses yet</h3>
-            <p className="text-gray-500 font-inter mb-6">Create your first business website to get started!</p>
+            <h3 className="font-mont font-semibold text-lg text-gray-600 mb-2">No {viewMode} yet</h3>
+            <p className="text-gray-500 font-inter mb-6">
+              {viewMode === 'websites' 
+                ? 'Create your first business website to get started!'
+                : 'Create your first business profile to get started!'
+              }
+            </p>
             <div className="space-y-3">
               <Link href='/id/create-new' className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-mont font-semibold hover:bg-green-700 transition-colors">
-                Create Your First Website
+                {viewMode === 'websites' ? 'Create Your First Website' : 'Create Your First Business'}
               </Link>
               <div className="text-xs text-gray-400 mt-4">
                 💡 If you&apos;re seeing database errors, make sure to run the SQL setup script in your Supabase dashboard
