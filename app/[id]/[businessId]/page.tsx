@@ -67,14 +67,13 @@ export default function Dashboard({ params }: DashboardProps) {
         }
         setUser(user);
 
-                  // Load business data
-          if (businessId) {
-            // Try to find by id first, then by business_id if not found
-            let { data: business, error: businessError } = await supabaseClient
-              .from('businesses')
-              .select('*')
-              .eq('id', businessId)
-              .single();
+        // Load business data
+        if (businessId) {
+          const { data: business, error: businessError } = await supabaseClient
+            .from('businessesNeo')
+            .select('*')
+            .eq('businessId', businessId)
+            .single();
 
             // If not found by id, try by business_id
             if (businessError || !business) {
@@ -148,10 +147,6 @@ export default function Dashboard({ params }: DashboardProps) {
     if (businessData?.websiteUrl) {
       window.open(businessData.websiteUrl, '_blank');
     }
-  };
-
-  const handleEditBusiness = () => {
-    router.push(`/${user?.id}/create-new`);
   };
 
   const handleGenerateWebsite = () => {
@@ -302,12 +297,7 @@ export default function Dashboard({ params }: DashboardProps) {
             >
               Create Menu
             </button>
-            <button
-              onClick={handleEditBusiness}
-              className="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors"
-            >
-              Edit Business
-            </button>
+            
             {businessData.websiteUrl && (
               <button
                 onClick={handleViewWebsite}
@@ -359,33 +349,7 @@ function GuideTab({ businessData }: { businessData: BusinessData }) {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Google Business Profile Setup Guide</h3>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setLang('en')}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-              lang === 'en' 
-                ? 'bg-indigo-600 text-white' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            EN
-          </button>
-          <button
-            onClick={() => setLang('id')}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-              lang === 'id' 
-                ? 'bg-indigo-600 text-white' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            ID
-          </button>
-        </div>
-      </div>
       <GuideOutput data={guideData} />
-    </div>
+      
   );
 }

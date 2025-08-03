@@ -1,100 +1,79 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import supabaseClient from '@/app/lib/supabase';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import LogoGenerator from '@/components/LogoGenerator';
-import { ArrowLeft, Home } from 'lucide-react';
+import { getBusinessInfoNeo } from '@/lib/api';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
-interface BusinessData {
-  businessId: string;
+interface BusinessInfo {
+  id: string;
   businessName: string;
   ownerName: string;
   description: string;
   category: string;
   products: string;
   phone: string;
-  email: string;
+  email?: string;
   address: string;
-  whatsapp: string;
-  instagram: string;
-  logoUrl: string;
-  userId: string;
-  createdAt: string;
+  whatsapp?: string;
+  instagram?: string;
+  logoUrl?: string;
+  websiteUrl?: string;
+  subdomain: string;
+  status: string;
+  createdAt: number;
+  deployedAt?: number;
+  googleMapsUrl: string;
+  whatsappUrl: string;
+  instagramUrl: string;
 }
 
 export default function GenerateLogoPage() {
   const params = useParams();
-  const router = useRouter();
-  const [businessData, setBusinessData] = useState<BusinessData | null>(null);
+  const businessId = params.businessId as string;
+  const [businessData, setBusinessData] = useState<BusinessInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBusinessData = async () => {
       try {
-        const { businessId } = params;
-        
-        if (!businessId) {
-          setError('Business ID not found');
-          return;
-        }
-
-        const { data, error } = await supabaseClient
-          .from('businesses')
-          .select('*')
-          .eq('businessId', businessId)
-          .single();
-
-        if (error) throw error;
-
+        setLoading(true);
+        const data = await getBusinessInfoNeo(businessId);
         setBusinessData(data);
       } catch (err) {
-        console.error('Error fetching business data:', err);
-        setError('Failed to load business data');
+        setError(err instanceof Error ? err.message : 'Failed to fetch business data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBusinessData();
-  }, [params]);
-
-  const handleLogoGenerated = async (logoUrl: string) => {
-    if (!businessData) return;
-
-    try {
-      // Update business record with new logo
-      const { error } = await supabaseClient
-        .from('businesses')
-        .update({ logoUrl })
-        .eq('businessId', businessData.businessId);
-
-      if (error) throw error;
-
-      // Update local state
-      setBusinessData(prev => prev ? { ...prev, logoUrl } : null);
-      
-      console.log('Logo updated successfully');
-    } catch (err) {
-      console.error('Error updating logo:', err);
+    if (businessId) {
+      fetchBusinessData();
     }
-  };
+  }, [businessId]);
 
-  const handleGoBack = () => {
-    router.back();
-  };
-
-  const handleGoHome = () => {
-    router.push('/dashboard');
+  const handleLogoGenerated = (logoUrl: string) => {
+    if (businessData) {
+      setBusinessData({
+        ...businessData,
+        logoUrl
+      });
+    }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading business data...</p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-gray-600">Loading business data...</p>
+          </div>
         </div>
       </div>
     );
@@ -102,70 +81,99 @@ export default function GenerateLogoPage() {
 
   if (error || !businessData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-4xl mb-4">⚠️</div>
-          <h3 className="text-lg font-semibold mb-2">Error</h3>
-          <p className="text-gray-600 mb-4">{error || 'Business not found'}</p>
-          <div className="flex gap-2 justify-center">
-            <button
-              onClick={handleGoBack}
-              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-            >
-              Go Back
-            </button>
-            <button
-              onClick={handleGoHome}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Go Home
-            </button>
-          </div>
-        </div>
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-red-600">Error</CardTitle>
+            <CardDescription>
+              {error || 'Business not found'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/dashboard">
+              <Button variant="outline">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Dashboard
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleGoBack}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Back
-              </button>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Logo Generator</h1>
-                <p className="text-sm text-gray-600">{businessData.businessName}</p>
-              </div>
-            </div>
-            <button
-              onClick={handleGoHome}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              <Home className="w-5 h-5" />
-              Dashboard
-            </button>
-          </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Link href={`/${params.id}/${businessId}`}>
+          <Button variant="outline" className="mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Business
+          </Button>
+        </Link>
+        
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Generate Logo for {businessData.businessName}
+          </h1>
+          <p className="text-gray-600">
+            Create a professional logo for your business using AI
+          </p>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
           <LogoGenerator
-            businessName={businessData.businessName}
-            businessType={businessData.category}
-            description={businessData.description}
+            businessData={businessData}
+            businessId={businessId}
             onLogoGenerated={handleLogoGenerated}
-            showCloseButton={false}
           />
+        </div>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Business Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Business Name</label>
+                <p className="text-sm">{businessData.businessName}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Owner</label>
+                <p className="text-sm">{businessData.ownerName}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Category</label>
+                <p className="text-sm capitalize">{businessData.category}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Description</label>
+                <p className="text-sm">{businessData.description}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Products/Services</label>
+                <p className="text-sm">{businessData.products}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {businessData.logoUrl && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Current Logo</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <img
+                  src={businessData.logoUrl}
+                  alt={`${businessData.businessName} logo`}
+                  className="w-full h-auto max-h-32 object-contain border rounded-lg"
+                />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

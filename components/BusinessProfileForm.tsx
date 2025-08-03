@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import supabaseClient from '@/app/lib/supabase';
 import { User } from '@supabase/supabase-js';
+import { generateBusinessId } from '@/lib/utils';
 
 interface Product {
   id: string;
@@ -60,9 +61,10 @@ export default function BusinessProfileForm() {
     logoFile: null
   });
 
-  const [businessIdError, setBusinessIdError] = useState<string>('');
   const [logoPrompt, setLogoPrompt] = useState<string>('');
   const [isGeneratingLogo, setIsGeneratingLogo] = useState(false);
+  const [businessIdError, setBusinessIdError] = useState<string>('');
+  const [isCheckingBusinessId, setIsCheckingBusinessId] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -81,51 +83,56 @@ export default function BusinessProfileForm() {
     checkUser();
   }, [router]);
 
-  const validateBusinessId = async (businessId: string) => {
-    if (!businessId) {
-      setBusinessIdError('Business ID is required');
-      return false;
-    }
+  // Function to format businessId (trim, lowercase, replace spaces with dashes)
+  const formatBusinessId = (input: string): string => {
+    return input
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
 
-    if (businessId.length < 3) {
-      setBusinessIdError('Business ID must be at least 3 characters');
-      return false;
-    }
-
-    if (!/^[a-zA-Z0-9-]+$/.test(businessId)) {
-      setBusinessIdError('Business ID can only contain letters, numbers, and hyphens');
-      return false;
-    }
-
+  // Function to check if businessId already exists
+  const checkBusinessIdExists = async (businessId: string): Promise<boolean> => {
+    if (!businessId) return false;
+    
     try {
       const { data, error } = await supabaseClient
-        .from('businesses')
+        .from('businessesNeo')
         .select('businessId')
         .eq('businessId', businessId)
         .single();
-
-      if (data) {
-        setBusinessIdError('Business ID already exists');
+      
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
+        console.error('Error checking businessId:', error);
         return false;
       }
-
-      setBusinessIdError('');
-      return true;
+      
+      return !!data; // Returns true if businessId exists
     } catch (error) {
-      // If no record found, businessId is available
-      setBusinessIdError('');
-      return true;
+      console.error('Error checking businessId:', error);
+      return false;
     }
   };
 
+  // Handle businessId input change
   const handleBusinessIdChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase().replace(/[^a-zA-Z0-9-]/g, '');
-    setFormData(prev => ({ ...prev, businessId: value }));
+    const input = e.target.value;
+    const formattedId = formatBusinessId(input);
     
-    if (value.length >= 3) {
-      await validateBusinessId(value);
-    } else {
-      setBusinessIdError('');
+    setFormData(prev => ({ ...prev, businessId: formattedId }));
+    setBusinessIdError('');
+    
+    if (formattedId && formattedId.length >= 3) {
+      setIsCheckingBusinessId(true);
+      const exists = await checkBusinessIdExists(formattedId);
+      setIsCheckingBusinessId(false);
+      
+      if (exists) {
+        setBusinessIdError('This Business ID is already taken. Please choose a different one.');
+      }
     }
   };
 
@@ -137,7 +144,7 @@ export default function BusinessProfileForm() {
     }
   };
 
-  const uploadImageToSupabase = async (file: File, filename: string) => {
+  const uploadImageToSupabase = async (file: File, filename: string, bucketName: string = 'productimages') => {
     try {
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
@@ -149,38 +156,42 @@ export default function BusinessProfileForm() {
         throw new Error('File must be an image');
       }
 
-      // Use the correct bucket name from your Supabase setup
-      const bucketName = 'productimages'; // this should match your Supabase bucket name
+      // Generate unique filename to avoid conflicts
+      const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
+      const fullPath = `${filename.replace(/\.[^/.]+$/, '')}-${uniqueFilename}`;
 
-      // First, check if we can access the bucket
-      const { data: bucket, error: bucketError } = await supabaseClient.storage
-        .getBucket(bucketName);
-      
-      if (bucketError) {
-        console.error('Error checking bucket:', bucketError);
-        throw new Error('Unable to access storage. Please ensure you have created a bucket named "images" in your Supabase storage.');
-      }
-
+      // Upload file to Supabase storage
       const { data, error } = await supabaseClient.storage
         .from(bucketName)
-        .upload(filename, file, {
+        .upload(fullPath, file, {
           cacheControl: '3600',
-          upsert: true // Allow overwriting files
+          upsert: false // Prevent overwriting with unique filenames
         });
       
       if (error) {
         console.error('Supabase upload error:', error);
+        // Check if it's a bucket not found error
+        if (error.message.includes('Bucket not found')) {
+          throw new Error(`Storage bucket '${bucketName}' not found. Please create the bucket in your Supabase dashboard.`);
+        }
+        // Check if it's a permission error
+        if (error.message.includes('permission') || error.message.includes('policy')) {
+          throw new Error('Permission denied. Please check your Supabase storage policies and ensure authenticated users can upload files.');
+        }
         throw new Error(`Failed to upload image: ${error.message}`);
       }
       
+      // Get public URL for the uploaded file
       const { data: { publicUrl } } = supabaseClient.storage
         .from(bucketName)
-        .getPublicUrl(filename);
+        .getPublicUrl(fullPath);
       
       if (!publicUrl) {
         throw new Error('Failed to get public URL for uploaded image');
       }
 
+      console.log('Successfully uploaded file:', fullPath);
       return publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -254,7 +265,12 @@ export default function BusinessProfileForm() {
   };
 
   const handleSubmit = async () => {
+    console.log('🚀 Starting form submission...');
+    console.log('📋 Form data:', formData);
+    console.log('👤 User:', user);
+    
     if (!user) {
+      console.error('❌ No user found');
       alert('Please log in to create a business profile');
       return;
     }
@@ -269,76 +285,118 @@ export default function BusinessProfileForm() {
       return;
     }
 
+    // Final check for businessId uniqueness
+    const exists = await checkBusinessIdExists(formData.businessId);
+    if (exists) {
+      setBusinessIdError('This Business ID is already taken. Please choose a different one.');
+      alert('This Business ID is already taken. Please choose a different one.');
+      return;
+    }
+
     setLoading(true);
     
     try {
+      console.log('📤 Starting logo upload...');
       // Upload logo if exists
-      let logoUrl = '';
+      let logoUrl = formData.logo || ''; // Keep existing logo URL if it's from AI generation
       if (formData.logoFile) {
-        const filename = `${formData.businessId}-logo-${Date.now()}.${formData.logoFile.name.split('.').pop()}`;
-        logoUrl = await uploadImageToSupabase(formData.logoFile, filename);
+        const filename = `logos/${formData.businessId}-logo`;
+        logoUrl = await uploadImageToSupabase(formData.logoFile, filename, 'productimages');
       }
 
       // Create business record
+      // const businessUuid = generateBusinessId();
+      // console.log('🆔 Generated UUID:', businessUuid);
+      
+      const businessDataToInsert = {
+        id: formData.businessId,
+        businessId: formData.businessId,
+        businessName: formData.businessName,
+        ownerName: formData.ownerName,
+        description: formData.description,
+        category: formData.category,
+        products: formData.products,
+        phone: formData.phone,
+        email: formData.email,
+        address: formData.address,
+        whatsapp: formData.whatsapp,
+        instagram: formData.instagram,
+        logoUrl: logoUrl
+      };
+      
+      console.log('📝 Inserting business data:', businessDataToInsert);
+      
       const { data: businessData, error: businessError } = await supabaseClient
-        .from('businesses')
-        .insert({
-          businessId: formData.businessId,
-          businessName: formData.businessName,
-          ownerName: formData.ownerName,
-          description: formData.description,
-          category: formData.category,
-          products: formData.products,
-          phone: formData.phone,
-          email: formData.email,
-          address: formData.address,
-          whatsapp: formData.whatsapp,
-          instagram: formData.instagram,
-          logoUrl: logoUrl,
-          userId: user.id,
-          createdAt: new Date().toISOString()
-        })
+        .from('businessesNeo')
+        .insert(businessDataToInsert)
         .select()
         .single();
 
-      if (businessError) throw businessError;
+      if (businessError) {
+        console.error('❌ Business creation error:', businessError);
+        throw businessError;
+      }
+      
+      console.log('✅ Business created successfully:', businessData);
 
       // Upload product images and create product records
+      console.log('📦 Processing products:', products.length);
       if (products.length > 0) {
+        console.log('🔄 Creating products...');
         const productsToInsert = await Promise.all(
-          products.map(async (product) => {
+          products.map(async (product, index) => {
+            console.log(`📦 Processing product ${index + 1}:`, product.name);
             let imageUrl = '';
             
             if (product.imageFile) {
-              const filename = `${formData.businessId}-product-${Date.now()}-${product.imageFile.name}`;
-              imageUrl = await uploadImageToSupabase(product.imageFile, filename);
+              const filename = `products/${formData.businessId}-${product.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
+              imageUrl = await uploadImageToSupabase(product.imageFile, filename, 'productimages');
             }
             
-            return {
+            const productData = {
               name: product.name,
               description: product.description,
               price: parseFloat(product.price),
               imageUrl: imageUrl,
-              businessId: formData.businessId
+              website_id: 0,
+              business_id: formData.businessId
             };
+            
+            console.log(`📝 Product data for ${product.name}:`, productData);
+            return productData;
           })
         );
 
+        console.log('📝 Inserting all products...');
         const { error: productsError } = await supabaseClient
           .from('products')
           .insert(productsToInsert);
 
-        if (productsError) throw productsError;
+        if (productsError) {
+          console.error('❌ Products creation error:', productsError);
+          throw productsError;
+        }
+        
+        console.log('✅ Products created successfully');
+      } else {
+        console.log('ℹ️ No products to create');
       }
 
+      console.log('🎉 Business profile created successfully!');
       alert('Business profile created successfully!');
       router.push(`/${user.id}/${formData.businessId}`);
       
     } catch (error) {
-      console.error('Error creating business profile:', error);
+      console.error('❌ Error creating business profile:', error);
+      console.error('❌ Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace',
+        error: error
+      });
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       alert(`Error creating business profile: ${errorMessage}. Please try again.`);
     } finally {
+      console.log('🏁 Form submission completed');
       setLoading(false);
     }
   };
@@ -353,15 +411,28 @@ export default function BusinessProfileForm() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Business ID *</label>
-              <input 
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                type="text" 
-                value={formData.businessId}
-                onChange={handleBusinessIdChange}
-                placeholder="e.g., warung-pak-budi"
-              />
-              {businessIdError && (
-                <p className="text-red-500 text-sm mt-1">{businessIdError}</p>
+              <div className="relative">
+                <input 
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    businessIdError ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  type="text" 
+                  value={formData.businessId}
+                  onChange={handleBusinessIdChange}
+                  placeholder="e.g., my-awesome-business"
+                />
+                {isCheckingBusinessId && (
+                  <div className="absolute right-3 top-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  </div>
+                )}
+              </div>
+              {businessIdError ? (
+                <p className="text-red-500 text-xs mt-1">{businessIdError}</p>
+              ) : (
+                <p className="text-gray-500 text-xs mt-1">
+                  Will be formatted as lowercase with dashes (e.g., "My Business" → "my-business")
+                </p>
               )}
             </div>
 
@@ -634,7 +705,7 @@ export default function BusinessProfileForm() {
       <div className="pt-6 border-t">
         <button 
           onClick={handleSubmit}
-          disabled={loading || !!businessIdError}
+          disabled={loading}
           className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Creating Business Profile...' : 'Create Business Profile'}

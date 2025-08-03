@@ -20,7 +20,7 @@ async function deploy(htmlCode: string, domain: string) {
   try {
     // Launch browser with enhanced security and performance settings
     browser = await puppeteer.launch({
-      headless: true, // Use new headless mode
+      headless: false, // Use new headless mode
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -102,9 +102,42 @@ async function deploy(htmlCode: string, domain: string) {
     console.log('Clicking deploy button...');
     await page.locator('button.PagesUploadCard_deploymentBtn__7ZMYf').click({ delay: 100 });
     
-    // Simple deployment without conflict handling - let EdgeOne handle conflicts
-    console.log('Deploying with domain:', domain);
-    await (new Promise(resolve => setTimeout(resolve, 3000)));
+    // Handle domain name conflicts with retry logic
+    let attempts = 0;
+    const maxAttempts = 5;
+    let deployed = false;
+
+    while (attempts < maxAttempts && !deployed) {
+      try {
+        // Wait a bit to see if there's a conflict
+        console.log('Checking for domain name conflicts...');
+        await (new Promise(resolve => setTimeout(resolve, 5000)));
+        
+        let conflictObject = await page.locator('::-p-text(Project name already exists)').waitHandle();
+        const conflictExists = await page.evaluate(el => {return el.innerHTML ? true : false}, conflictObject);
+
+        if (conflictExists) {
+          attempts++;
+          newDomain = `${domain}-${attempts}`;
+          console.log(`Domain conflict detected, trying: ${newDomain}`);
+          
+          await page.locator('input[placeholder="Enter your domain name"]').fill(newDomain);
+          await page.locator('button.PagesUploadCard_deploymentBtn__7ZMYf').click();
+          
+        } else {
+          // No conflict, deployment should proceed
+          console.log('No domain conflict, deployment proceeding...');
+        }
+      } catch (error) {
+        console.error('Error checking for domain conflict:', error);
+        break; // Exit loop if there's an error
+      }
+
+      await (new Promise(resolve => setTimeout(resolve, 10000)));
+      const deployMessage = await page.locator('::-p-text(Deploying...)').waitHandle();
+      deployed = await page.evaluate((el) => {return el.innerHTML ? true : false}, deployMessage);
+
+    }
     
     // Wait for deployment to complete (look for success indicators)
     console.log('Waiting for deployment to complete...');

@@ -49,10 +49,11 @@ export class AIWebsiteService {
   }
 
   async modifyWebsite(
-    currentWebsite: GeneratedWebsite, 
-    modificationPrompt: string
+    currentHtml: string, 
+    modificationPrompt: string,
+    businessData: BusinessData
   ): Promise<AIWebsiteResponse> {
-    const prompt = this.createModificationPrompt(currentWebsite, modificationPrompt);
+    const prompt = this.createModificationPromptFromHtml(currentHtml, modificationPrompt, businessData);
     
     // Try AI services for modification (Gemini first since it's free)
     const aiServices = [
@@ -64,7 +65,7 @@ export class AIWebsiteService {
     for (const service of aiServices) {
       try {
         console.log(`Attempting modification with ${service.name}...`);
-        const result = await service.method(prompt, currentWebsite.metadata.businessData);
+        const result = await service.method(prompt, businessData);
         if (result.success) {
           console.log(`Successfully modified with ${service.name}`);
           return result;
@@ -76,25 +77,17 @@ export class AIWebsiteService {
     }
 
     // Fallback to intelligent modification
-    return this.generateIntelligentModification(currentWebsite, modificationPrompt);
+    return this.generateIntelligentModificationFromHtml(currentHtml, modificationPrompt, businessData);
   }
 
-  private createModificationPrompt(currentWebsite: GeneratedWebsite, modificationPrompt: string): string {
-    const { businessData } = currentWebsite.metadata;
-    
+  private createModificationPromptFromHtml(currentHtml: string, modificationPrompt: string, businessData: BusinessData): string {
     return `Modify the existing website for "${businessData.businessName}" based on the following request:
 
 MODIFICATION REQUEST:
 ${modificationPrompt}
 
-CURRENT WEBSITE STRUCTURE:
-The website currently has these sections:
-- Header/Navigation
-- Hero section
-- About section
-- Products/Services section
-- Contact section
-- Footer
+CURRENT WEBSITE HTML:
+${currentHtml}
 
 BUSINESS DETAILS:
 - Business Name: ${businessData.businessName}
@@ -450,6 +443,21 @@ ${prompt}`
       js: currentWebsite.js,
       success: true,
       explanation: 'Modification requested but AI services unavailable. Original website returned.'
+    };
+  }
+
+  private generateIntelligentModificationFromHtml(currentHtml: string, modificationPrompt: string, businessData: BusinessData): AIWebsiteResponse {
+    // Fallback modification logic - return the current HTML with minimal changes
+    return {
+      success: true,
+      html: currentHtml,
+      css: this.generateBasicCSS(),
+      js: this.generateBasicJS(),
+      metadata: {
+        businessData,
+        generatedAt: new Date().toISOString(),
+        modificationRequest: modificationPrompt
+      }
     };
   }
 

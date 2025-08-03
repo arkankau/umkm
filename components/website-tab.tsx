@@ -35,10 +35,13 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
   const [isGenerating, setIsGenerating] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
   const [websiteStatus, setWebsiteStatus] = useState<'not-generated' | 'generating' | 'generated' | 'error'>(
-    businessData.websiteGenerated ? 'generated' : 'not-generated'
+    businessData.websiteUrl ? 'generated' : 'not-generated'
   );
   const [websiteData, setWebsiteData] = useState<BusinessData>(businessData);
+  const [products, setProducts] = useState<any[]>([]);
+  const [showProductsMenu, setShowProductsMenu] = useState(false);
 
   // Transform businessData to match BusinessForm interface
   const transformToBusinessFormData = (data: BusinessData) => ({
@@ -58,18 +61,55 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
     websiteGenerated: data.websiteGenerated
   });
 
+  // Fetch products for this business
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabaseClient
+        .from('products')
+        .select('*')
+        .eq('business_id', businessData.businessId);
+
+      if (error) {
+        console.error('Error fetching products:', error);
+        return;
+      }
+
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
+
+  // Load products when component mounts
+  useEffect(() => {
+    fetchProducts();
+  }, [businessData.businessId]);
+
   const handleGenerateWebsite = async () => {
     setIsGenerating(true);
     setWebsiteStatus('generating');
 
     try {
+      // Prepare products information for the prompt
+      const productsInfo = products.length > 0 
+        ? `\n\nProducts/Services:\n${products.map(p => `- ${p.name}: ${p.description} (Rp ${p.price?.toLocaleString() || '0'})`).join('\n')}`
+        : '';
+
+      // Prepare the data with custom prompt and products
+      const requestData = {
+        ...transformToBusinessFormData(businessData),
+        customPrompt: customPrompt.trim() || undefined,
+        productsList: products,
+        productsInfo: productsInfo
+      };
+
       // Call the website generation API
-      const response = await fetch('/api/submit-business', {
+      const response = await fetch('/api/generate-website', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(transformToBusinessFormData(businessData)),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
@@ -81,7 +121,7 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
       if (result.success) {
         // Update business record with website URL
         const { error } = await supabaseClient
-          .from('businesses')
+          .from('businessesNeo')
           .update({
             websiteUrl: result.url,
             websiteGenerated: true
@@ -91,7 +131,11 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
         if (error) throw error;
 
         setWebsiteStatus('generated');
-        const updatedData = { ...businessData, websiteUrl: result.url, websiteGenerated: true };
+        const updatedData = { 
+          ...businessData, 
+          websiteUrl: result.url, 
+          websiteGenerated: true 
+        } as BusinessData;
         onUpdate?.(updatedData);
         setWebsiteData(updatedData);
       } else {
@@ -124,12 +168,12 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
     try {
       // Update business data with new form data
       const { error } = await supabaseClient
-        .from('businesses')
+        .from('businessesNeo')
         .update({
           businessName: formData.businessName,
           ownerName: formData.ownerName,
           description: formData.description,
-          category: formData.category,
+          category: formData.category as 'restaurant' | 'retail' | 'service' | 'other',
           products: formData.products,
           phone: formData.phone,
           email: formData.email,
@@ -141,7 +185,11 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
 
       if (error) throw error;
 
-      const updatedData = { ...businessData, ...formData };
+      const updatedData = { 
+        ...businessData, 
+        ...formData,
+        category: formData.category as 'restaurant' | 'retail' | 'service' | 'other'
+      } as BusinessData;
       onUpdate?.(updatedData);
       setWebsiteData(updatedData);
       setShowForm(false);
@@ -254,12 +302,86 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
                 </div>
               </div>
             </div>
+            
+            {/* Products Menu */}
+            <div className="bg-white p-4 rounded-lg border border-blue-200">
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="font-semibold text-blue-800">Products Menu</h4>
+                <button
+                  onClick={() => setShowProductsMenu(!showProductsMenu)}
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                >
+                  {showProductsMenu ? 'Hide' : 'Show'} Products
+                </button>
+              </div>
+              {showProductsMenu && (
+                <div className="space-y-3">
+                  {products.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {products.map((product) => (
+                        <div key={product.id} className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center gap-3">
+                            {product.image_url && (
+                              <img 
+                                src={product.image_url} 
+                                alt={product.name}
+                                className="w-12 h-12 object-cover rounded"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <h5 className="font-medium text-sm">{product.name}</h5>
+                              <p className="text-gray-600 text-xs">{product.description}</p>
+                              <p className="text-indigo-600 font-bold text-sm">
+                                Rp {product.price?.toLocaleString() || '0'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No products added yet. Products will be included in the website generation.</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Custom Prompt Input */}
+            <div className="bg-white p-4 rounded-lg border border-blue-200">
+              <h4 className="font-semibold text-blue-800 mb-2">Custom Instructions (Optional)</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Add specific instructions for your website design, layout, or content preferences.
+              </p>
+              <textarea
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
+                placeholder="e.g., 'Make it modern and minimalist', 'Include a testimonials section', 'Use a warm color scheme'"
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            
+            <div className="flex justify-between items-center">
+
+            <button onClick = {() => setShowForm(true)}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Show Form
+            </button>
+            
+            <button onClick = {() => setShowPreview(true)}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Show Preview
+            </button>
+
             <button
               onClick={handleGenerateWebsite}
               className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Generate Website
             </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,551 +1,671 @@
-"use client"
-import React, { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import NavDash from '@/components/dashboardnav'
-import supabaseClient from '@/app/lib/supabase'
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import supabaseClient from '@/app/lib/supabase';
 
 interface Product {
-  id: string
-  name: string
-  price: number
-  description: string
-  image_url?: string
-  imageFile?: File
+  id: string;
+  name: string;
+  price: string;
+  description: string;
+  imageUrl?: string;
 }
 
-interface MenuTemplate {
-  id: string
-  name: string
-  description: string
-  preview: string
+interface MenuItem {
+  id: string;
+  name: string;
+  products: Product[];
 }
 
-const CreateMenu = () => {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('')
-  const [products, setProducts] = useState<Product[]>([])
-  const [showProductForm, setShowProductForm] = useState(false)
-  const [newProduct, setNewProduct] = useState({
-    name: '',
-    price: '',
-    description: '',
-    image: '',
-    imageFile: null as File | null
-  })
-  
-  const [menuData, setMenuData] = useState({
-    businessName: '',
-    description: '',
-    phone: '',
-    address: ''
-  })
+interface Menu {
+  id: string;
+  businessId: string;
+  name: string;
+  sections: MenuItem[];
+  created_at: string;
+  updated_at: string;
+}
 
-  const templates: MenuTemplate[] = [
-    {
-      id: 'classic',
-      name: 'Classic Menu',
-      description: 'Clean and professional design with traditional layout',
-      preview: '📋'
-    },
-    {
-      id: 'modern',
-      name: 'Modern Menu',
-      description: 'Contemporary design with bold typography and spacing',
-      preview: '🎨'
-    },
-    {
-      id: 'elegant',
-      name: 'Elegant Menu',
-      description: 'Sophisticated design with premium styling',
-      preview: '✨'
-    }
-  ]
+interface BusinessData {
+  businessId: string;
+  businessName: string;
+  ownerName: string;
+  description: string;
+  category: 'restaurant' | 'retail' | 'service' | 'other';
+  products: string;
+  phone: string;
+  email: string;
+  address: string;
+  whatsapp: string;
+  instagram: string;
+  logoUrl: string;
+  userId: string;
+  createdAt: string;
+  websiteUrl?: string;
+}
+
+export default function CreateMenuPage() {
+  const params = useParams();
+  const router = useRouter();
+  const [businessData, setBusinessData] = useState<BusinessData | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [draggedProduct, setDraggedProduct] = useState<Product | null>(null);
+  const [newMenuItemName, setNewMenuItemName] = useState('');
+  const [menuName, setMenuName] = useState('');
+  const [existingMenu, setExistingMenu] = useState<Menu | null>(null);
 
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { data: { user }, error } = await supabaseClient.auth.getUser()
-        if (error || !user) {
-          router.push('/login')
-          return
-        }
-        setUser(user)
-        
-        // Get business data from URL params or fetch from database
-        const businessId = searchParams?.get('businessId')
-        if (businessId) {
-          await loadBusinessData(businessId)
-        }
-      } catch (error) {
-        console.error('Error checking auth state:', error)
-        router.push('/login')
-      }
-    }
-    checkUser()
-  }, [searchParams])
+    loadBusinessData();
+  }, []);
 
-  const loadBusinessData = async (businessId: string) => {
+  const loadBusinessData = async () => {
     try {
-      const { data, error } = await supabaseClient
-        .from('websiteforms')
+      const { id, businessId } = params as { id: string; businessId: string };
+      
+      // Load business data
+      const { data: business, error: businessError } = await supabaseClient
+        .from('businessesNeo')
         .select('*')
-        .eq('id', businessId)
-        .single()
+        .eq('businessId', businessId)
+        .single();
 
-      if (data) {
-        setMenuData({
-          businessName: data.name || '',
-          description: data.description || '',
-          phone: data.phone || '',
-          address: data.address || ''
-        })
+      if (businessError) throw businessError;
+      setBusinessData(business);
 
-        // Load existing products
-        const { data: productsData } = await supabaseClient
-          .from('products')
-          .select('*')
-          .eq('website_id', businessId)
+      // Load products
+      const { data: productsData, error: productsError } = await supabaseClient
+        .from('products')
+        .select('*')
+        .eq('business_id', businessId);
 
-        if (productsData) {
-          setProducts(productsData.map(p => ({
-            id: p.id,
-            name: p.name,
-            price: p.price,
-            description: p.description,
-            image_url: p.image_url
-          })))
+      if (productsError) throw productsError;
+      setProducts(productsData || []);
+
+      // Load existing menu
+      const { data: menuData, error: menuError } = await supabaseClient
+        .from('menus')
+        .select('*')
+        .eq('businessId', businessId)
+        .single();
+
+      if (menuData && !menuError) {
+        setExistingMenu(menuData);
+        setMenuName(menuData.name || '');
+        
+        // Convert submenus back to menuItems format
+        if (menuData.submenus) {
+          const convertedMenuItems: MenuItem[] = [];
+          const usedProductIds: string[] = [];
+          
+          Object.entries(menuData.submenus).forEach(([sectionName, productIds]) => {
+            const productIdsArray = productIds as string[];
+            const sectionProducts = productsData?.filter(product => 
+              productIdsArray.includes(product.id)
+            ) || [];
+            
+            convertedMenuItems.push({
+              id: `menu-${sectionName}-${Date.now()}`,
+              name: sectionName,
+              products: sectionProducts
+            });
+            
+            usedProductIds.push(...productIdsArray);
+          });
+          
+          setMenuItems(convertedMenuItems);
+          setProducts(prev => prev.filter(p => !usedProductIds.includes(p.id)));
         }
       }
+
+      setLoading(false);
     } catch (error) {
-      console.error('Error loading business data:', error)
+      console.error('Error loading data:', error);
+      setLoading(false);
     }
-  }
+  };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const imageUrl = URL.createObjectURL(file)
-      setNewProduct({...newProduct, image: imageUrl, imageFile: file})
-    }
-  }
+  const handleDragStart = (e: React.DragEvent, product: Product) => {
+    setDraggedProduct(product);
+    e.dataTransfer.effectAllowed = 'move';
+  };
 
-  const uploadImageToSupabase = async (file: File, filename: string) => {
-    try {
-      const { data, error } = await supabaseClient.storage
-        .from('productimages')
-        .upload(filename, file)
-      
-      if (error) throw error
-      
-      const { data: { publicUrl } } = supabaseClient.storage
-        .from('productimages')
-        .getPublicUrl(filename)
-      
-      return publicUrl
-    } catch (error) {
-      console.error('Error uploading image:', error)
-      throw error
-    }
-  }
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
 
-  const addProduct = () => {
-    if (newProduct.name && newProduct.price) {
-      const product: Product = {
-        id: Date.now().toString(),
-        name: newProduct.name,
-        price: parseFloat(newProduct.price),
-        description: newProduct.description,
-        image_url: newProduct.image
+  const handleDrop = (e: React.DragEvent, targetMenuItemId: string) => {
+    e.preventDefault();
+    
+    if (!draggedProduct) return;
+
+    setMenuItems(prev => prev.map(item => {
+      if (item.id === targetMenuItemId) {
+        const productExists = item.products.some(p => p.id === draggedProduct.id);
+        if (!productExists) {
+          return {
+            ...item,
+            products: [...item.products, draggedProduct]
+          };
+        }
       }
-      setProducts([...products, product])
-      setNewProduct({ name: '', price: '', description: '', image: '', imageFile: null })
-      setShowProductForm(false)
-    }
-  }
+      return item;
+    }));
 
-  const removeProduct = (id: string) => {
-    setProducts(products.filter(product => product.id !== id))
-  }
+    setProducts(prev => prev.filter(p => p.id !== draggedProduct.id));
+    setDraggedProduct(null);
+  };
+
+  const addMenuItem = () => {
+    if (!newMenuItemName.trim()) return;
+    
+    const newMenuItem: MenuItem = {
+      id: `menu-${Date.now()}`,
+      name: newMenuItemName.trim(),
+      products: []
+    };
+    
+    setMenuItems(prev => [...prev, newMenuItem]);
+    setNewMenuItemName('');
+  };
+
+  const removeMenuItem = (menuItemId: string) => {
+    const menuItem = menuItems.find(item => item.id === menuItemId);
+    if (menuItem) {
+      setProducts(prev => [...prev, ...menuItem.products]);
+    }
+    
+    setMenuItems(prev => prev.filter(item => item.id !== menuItemId));
+  };
+
+  const removeProductFromMenuItem = (menuItemId: string, productId: string) => {
+    setMenuItems(prev => prev.map(item => {
+      if (item.id === menuItemId) {
+        const product = item.products.find(p => p.id === productId);
+        if (product) {
+          setProducts(prevProducts => [...prevProducts, product]);
+        }
+        return {
+          ...item,
+          products: item.products.filter(p => p.id !== productId)
+        };
+      }
+      return item;
+    }));
+  };
+
+  const saveMenu = async () => {
+
+    if (!businessData || !menuName.trim() || menuItems.length === 0) {
+      alert('Please provide a menu name and add at least one section with products');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Create submenus dictionary with product IDs
+      const submenus: { [key: string]: string[] } = {};
+      menuItems.forEach(menuItem => {
+        submenus[menuItem.name] = menuItem.products.map(product => product.id);
+      });
+
+      const menuData = {
+        id: `${businessData.businessId}-${menuName.trim()}`,
+        businessId: businessData.businessId,
+        name: menuName.trim(),
+        submenus: submenus,
+        updated_at: new Date().toISOString()
+      };
+
+      if (existingMenu) {
+        // Update existing menu
+        const { error } = await supabaseClient
+          .from('menus')
+          .update(menuData)
+          .eq('id', existingMenu.id);
+
+        if (error) throw error;
+      } else {
+        // Create new menu
+        const { error } = await supabaseClient
+          .from('menus')
+          .insert({
+            ...menuData,
+            created_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+      }
+
+      alert('Menu saved successfully!');
+      router.push(`/${businessData.userId}/${businessData.businessId}`);
+    } catch (error) {
+      console.error('Error saving menu:', error);
+      alert('Error saving menu. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const generateMenuHTML = () => {
-    const template = templates.find(t => t.id === selectedTemplate)
-    if (!template) return ''
+    if (!businessData) return '';
 
-    const productsHTML = products.map(product => `
-      <div class="menu-item">
-        <div class="item-image">
-          ${product.image_url ? `<img src="${product.image_url}" alt="${product.name}" />` : ''}
-        </div>
-        <div class="item-details">
-          <h3 class="item-name">${product.name}</h3>
-          <p class="item-description">${product.description}</p>
-          <span class="item-price">Rp ${product.price.toLocaleString()}</span>
-        </div>
-      </div>
-    `).join('')
-
-    return `
-      <!DOCTYPE html>
-      <html lang="id">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${menuData.businessName} - Menu</title>
-        <style>
-          body {
-            font-family: 'Arial', sans-serif;
+    let html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${businessData.businessName} - Menu</title>
+    <style>
+        * {
             margin: 0;
-            padding: 20px;
-            background: #f5f5f5;
-          }
-          .menu-container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            overflow: hidden;
-          }
-          .menu-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-          }
-          .menu-header h1 {
-            margin: 0;
-            font-size: 2.5rem;
-            font-weight: bold;
-          }
-          .menu-header p {
-            margin: 10px 0 0 0;
-            opacity: 0.9;
-          }
-          .menu-content {
-            padding: 30px;
-          }
-          .menu-items {
-            display: grid;
-            gap: 20px;
-          }
-          .menu-item {
-            display: flex;
-            gap: 20px;
-            padding: 20px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            transition: transform 0.2s;
-          }
-          .menu-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-          }
-          .item-image img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 8px;
-          }
-          .item-details {
-            flex: 1;
-          }
-          .item-name {
-            margin: 0 0 8px 0;
-            font-size: 1.2rem;
-            font-weight: bold;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
             color: #333;
-          }
-          .item-description {
-            margin: 0 0 8px 0;
-            color: #666;
-            font-size: 0.9rem;
-          }
-          .item-price {
-            font-weight: bold;
-            color: #667eea;
-            font-size: 1.1rem;
-          }
-          .menu-footer {
-            background: #f8f9fa;
-            padding: 20px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
             text-align: center;
-            border-top: 1px solid #eee;
-          }
-          .contact-info {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px 20px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            color: #718096;
+            margin-bottom: 20px;
+        }
+        
+        .contact-info {
             display: flex;
             justify-content: center;
             gap: 30px;
-            margin-top: 15px;
-          }
-          .contact-item {
+            flex-wrap: wrap;
+        }
+        
+        .contact-item {
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #666;
-          }
-          @media print {
-            body { background: white; }
-            .menu-container { box-shadow: none; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="menu-container">
-          <div class="menu-header">
-            <h1>${menuData.businessName}</h1>
-            <p>${menuData.description}</p>
-          </div>
-          <div class="menu-content">
-            <div class="menu-items">
-              ${productsHTML}
-            </div>
-          </div>
-          <div class="menu-footer">
+            color: #4a5568;
+        }
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+        
+        .menu-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .menu-section h2 {
+            font-size: 1.8rem;
+            color: #2d3748;
+            margin-bottom: 25px;
+            text-align: center;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .menu-item {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 15px;
+            background: #f7fafc;
+            transition: transform 0.2s ease;
+        }
+        
+        .menu-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .menu-item-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        
+        .menu-item-content {
+            flex: 1;
+        }
+        
+        .menu-item-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+        
+        .menu-item-description {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .menu-item-price {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .footer p {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .contact-info {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>${businessData.businessName}</h1>
+            <p>${businessData.description}</p>
             <div class="contact-info">
-              <div class="contact-item">
-                📞 ${menuData.phone}
-              </div>
-              <div class="contact-item">
-                📍 ${menuData.address}
-              </div>
+                ${businessData.phone ? `<div class="contact-item">📞 ${businessData.phone}</div>` : ''}
+                ${businessData.address ? `<div class="contact-item">📍 ${businessData.address}</div>` : ''}
+                ${businessData.whatsapp ? `<div class="contact-item">💬 ${businessData.whatsapp}</div>` : ''}
             </div>
-          </div>
         </div>
-      </body>
-      </html>
-    `
+        
+        <div class="menu-grid">`;
+
+    menuItems.forEach(menuItem => {
+      html += `
+            <div class="menu-section">
+                <h2>${menuItem.name}</h2>`;
+      
+      menuItem.products.forEach(product => {
+        html += `
+                <div class="menu-item">
+                    ${product.imageUrl ? `<img src="${product.imageUrl}" alt="${product.name}" class="menu-item-image">` : ''}
+                    <div class="menu-item-content">
+                        <div class="menu-item-name">${product.name}</div>
+                        ${product.description ? `<div class="menu-item-description">${product.description}</div>` : ''}
+                        <div class="menu-item-price">Rp ${parseFloat(product.price).toLocaleString()}</div>
+                    </div>
+                </div>`;
+      });
+      
+      html += `
+            </div>`;
+    });
+
+    html += `
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 ${businessData.businessName}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    return html;
+  };
+
+  const downloadMenu = () => {
+    const html = generateMenuHTML();
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${businessData?.businessName}-menu.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
   }
 
-  const handleDownloadMenu = () => {
-    if (!selectedTemplate) {
-      alert('Please select a template first')
-      return
-    }
-
-    const html = generateMenuHTML()
-    const blob = new Blob([html], { type: 'text/html' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${menuData.businessName}-menu.html`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
-
-  const handlePrintMenu = () => {
-    if (!selectedTemplate) {
-      alert('Please select a template first')
-      return
-    }
-
-    const html = generateMenuHTML()
-    const printWindow = window.open('', '_blank')
-    if (printWindow) {
-      printWindow.document.write(html)
-      printWindow.document.close()
-      printWindow.print()
-    }
+  if (!businessData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Business Not Found</h1>
+          <p className="text-gray-600">The business you're looking for doesn't exist.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <NavDash/>
-      <div className="section px-4 md:px-15 max-w-6xl mx-auto">
-        <h1 className='font-mont font-bold text-3xl mb-6'>Create Your Menu</h1>
-        
-        {/* Template Selection */}
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h2 className='font-mont font-bold text-2xl mb-4'>Choose Template</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {templates.map((template) => (
-              <div
-                key={template.id}
-                onClick={() => setSelectedTemplate(template.id)}
-                className={`p-6 border-2 rounded-lg cursor-pointer transition-all ${
-                  selectedTemplate === template.id
-                    ? 'border-button bg-button/10'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="text-4xl mb-3">{template.preview}</div>
-                <h3 className='font-mont font-bold text-lg mb-2'>{template.name}</h3>
-                <p className='text-sm text-gray-600'>{template.description}</p>
-              </div>
-            ))}
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Menu</h1>
+          <p className="text-gray-600">Organize your products into a beautiful menu for {businessData.businessName}</p>
+        </div>
+
+        {/* Menu Name Input */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Menu Information</h2>
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={menuName}
+              onChange={(e) => setMenuName(e.target.value)}
+              placeholder="Enter menu name (e.g., Main Menu, Lunch Menu, etc.)"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
           </div>
         </div>
 
-        {/* Business Information */}
-        <div className="mb-8">
-          <h2 className='font-mont font-bold text-2xl mb-4'>Business Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1 font-inter">
-              <h3 className='text-sm'>Business Name</h3>
-              <input 
-                className='bg-white px-3 py-2 text-sm border border-stroke rounded-md outline-none' 
-                type="text" 
-                value={menuData.businessName}
-                onChange={(e) => setMenuData({...menuData, businessName: e.target.value})}
-              />
-            </div>
-            <div className="flex flex-col gap-1 font-inter">
-              <h3 className='text-sm'>Phone</h3>
-              <input 
-                className='bg-white px-3 py-2 text-sm border border-stroke rounded-md outline-none' 
-                type="text" 
-                value={menuData.phone}
-                onChange={(e) => setMenuData({...menuData, phone: e.target.value})}
-              />
-            </div>
-            <div className="flex flex-col gap-1 font-inter md:col-span-2">
-              <h3 className='text-sm'>Description</h3>
-              <textarea 
-                className='bg-white px-3 py-2 text-sm border border-stroke rounded-md outline-none h-20'
-                value={menuData.description}
-                onChange={(e) => setMenuData({...menuData, description: e.target.value})}
-              />
-            </div>
-            <div className="flex flex-col gap-1 font-inter md:col-span-2">
-              <h3 className='text-sm'>Address</h3>
-              <input 
-                className='bg-white px-3 py-2 text-sm border border-stroke rounded-md outline-none' 
-                type="text" 
-                value={menuData.address}
-                onChange={(e) => setMenuData({...menuData, address: e.target.value})}
-              />
-            </div>
-          </div>
-        </div>
-        
-        {/* Products Section */}
-        <div className="products-section mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className='font-mont font-bold text-2xl'>Menu Items</h2>
-            <button 
-              onClick={() => setShowProductForm(!showProductForm)} 
-              className='bg-button text-white px-4 py-2 rounded-lg text-sm hover:bg-black transition-colors'
-            >
-              {showProductForm ? 'Cancel' : 'Add Item'}
-            </button>
-          </div>
-
-          {showProductForm && (
-            <div className="product-form bg-[#E9E4DA] p-4 rounded-xl mb-4">
-              <h3 className='font-mont font-bold mb-3 text-lg'>Add Menu Item</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1 font-inter">
-                  <h4 className='text-sm'>Item Name</h4>
-                  <input 
-                    className='bg-white px-3 py-2 text-sm border border-stroke rounded-md outline-none' 
-                    type="text" 
-                    value={newProduct.name}
-                    onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                  />
-                </div>
-                <div className="flex flex-col gap-1 font-inter">
-                  <h4 className='text-sm'>Price</h4>
-                  <input 
-                    className='bg-white px-3 py-2 text-sm border border-stroke rounded-md outline-none' 
-                    type="number" 
-                    value={newProduct.price}
-                    onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-                  />
-                </div>
-                <div className="flex flex-col gap-1 font-inter md:col-span-2">
-                  <h4 className='text-sm'>Description</h4>
-                  <textarea 
-                    className='bg-white px-3 py-2 text-sm border border-stroke rounded-md outline-none h-20'
-                    value={newProduct.description}
-                    onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-                  />
-                </div>
-                <div className="flex flex-col gap-1 font-inter md:col-span-2">
-                  <h4 className='text-sm'>Item Image</h4>
-                  <div className='flex items-center'>
-                    <input 
-                      className='text-sm h-10 rounded-md outline-none file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-button file:text-white file:cursor-pointer file:hover:bg-opacity-80 file:transition-colors' 
-                      type="file" 
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                    />
-                  </div>
-                  {newProduct.image && (
-                    <img src={newProduct.image} alt="Preview" className="w-16 h-16 object-cover rounded mt-2" />
-                  )}
-                </div>
-              </div>
-              <button 
-                onClick={addProduct} 
-                className='bg-button text-white px-4 py-2 rounded-lg text-sm mt-3 hover:bg-black transition-colors'
-              >
-                Add Item
-              </button>
-            </div>
-          )}
-
-          <div className="products-list">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Available Products */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Available Products</h2>
             {products.length === 0 ? (
-              <p className='text-gray-500 text-sm font-inter'>No menu items added yet.</p>
+              <p className="text-gray-500 text-center py-8">No products available. Add products in the business dashboard first.</p>
             ) : (
-              <div className="grid gap-3">
+              <div className="space-y-3">
                 {products.map((product) => (
-                  <div key={product.id} className="product-item bg-[#E9E4DA] border border-stroke rounded-xl p-4 flex justify-between items-center">
-                    <div className="flex gap-4 items-center">
-                      {product.image_url && (
-                        <img src={product.image_url} alt={product.name} className="w-12 h-12 object-cover rounded" />
-                      )}
-                      <div>
-                        <h4 className='font-inter font-semibold text-sm'>{product.name}</h4>
-                        <p className='text-button font-bold text-sm'>Rp {product.price.toLocaleString()}</p>
-                        {product.description && (
-                          <p className='text-gray-600 text-xs mt-1'>{product.description}</p>
-                        )}
-                      </div>
+                  <div
+                    key={product.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, product)}
+                    className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-move hover:bg-gray-50 transition-colors"
+                  >
+                    {product.imageUrl && (
+                      <img 
+                        src={product.imageUrl} 
+                        alt={product.name}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h3 className="font-medium text-sm">{product.name}</h3>
+                      <p className="text-gray-600 text-xs">{product.description}</p>
+                      <p className="text-indigo-600 font-bold text-sm">
+                        Rp {parseFloat(product.price).toLocaleString()}
+                      </p>
                     </div>
-                    <button 
-                      onClick={() => removeProduct(product.id)} 
-                      className='text-red-500 hover:text-red-700 text-xs font-inter px-2 py-1 hover:bg-red-50 rounded transition-colors'
-                    >
-                      Remove
-                    </button>
+                    <div className="text-gray-400 text-xs">Drag to menu</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Menu Sections */}
+          <div className="space-y-6">
+            {/* Add New Menu Section */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Add Menu Section</h2>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={newMenuItemName}
+                  onChange={(e) => setNewMenuItemName(e.target.value)}
+                  placeholder="Enter menu section name (e.g., Appetizers, Main Course)"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                <button
+                  onClick={addMenuItem}
+                  disabled={!newMenuItemName.trim()}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Add Section
+                </button>
+              </div>
+            </div>
+
+            {/* Menu Sections */}
+            {menuItems.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Menu Sections</h2>
+                <p className="text-gray-500 text-center py-8">
+                  Create menu sections above and drag products from the left to organize your menu.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {menuItems.map((menuItem) => (
+                  <div
+                    key={menuItem.id}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, menuItem.id)}
+                    className="bg-white rounded-lg shadow-md p-6 border-2 border-dashed border-gray-300 hover:border-indigo-400 transition-colors"
+                  >
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">{menuItem.name}</h3>
+                      <button
+                        onClick={() => removeMenuItem(menuItem.id)}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                      >
+                        Remove Section
+                      </button>
+                    </div>
+                    
+                    {menuItem.products.length === 0 ? (
+                      <p className="text-gray-500 text-center py-4">
+                        Drop products here from the left panel
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {menuItem.products.map((product) => (
+                          <div key={product.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            {product.imageUrl && (
+                              <img 
+                                src={product.imageUrl} 
+                                alt={product.name}
+                                className="w-10 h-10 object-cover rounded"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <h4 className="font-medium text-sm">{product.name}</h4>
+                              <p className="text-gray-600 text-xs">{product.description}</p>
+                              <p className="text-indigo-600 font-bold text-sm">
+                                Rp {parseFloat(product.price).toLocaleString()}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => removeProductFromMenuItem(menuItem.id, product.id)}
+                              className="text-red-500 hover:text-red-700 text-xs"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
           </div>
         </div>
-        
+
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <button 
-            onClick={handleDownloadMenu}
-            disabled={!selectedTemplate || products.length === 0}
-            className='bg-button text-white px-6 py-3 rounded-lg font-mont font-semibold hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Download HTML
-          </button>
-          <button 
-            onClick={handlePrintMenu}
-            disabled={!selectedTemplate || products.length === 0}
-            className='bg-green-600 text-white px-6 py-3 rounded-lg font-mont font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            Print Menu
-          </button>
-        </div>
+        {menuItems.length > 0 && (
+          <div className="mt-8 flex justify-center gap-4">
+            <button
+              onClick={saveMenu}
+              disabled={saving || !menuName.trim()}
+              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? 'Saving...' : 'Save Menu'}
+            </button>
+            <button
+              onClick={downloadMenu}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
+            >
+              Download Menu HTML
+            </button>
+          </div>
+        )}
       </div>
     </div>
-  )
-}
-
-export default CreateMenu 
+  );
+} 
