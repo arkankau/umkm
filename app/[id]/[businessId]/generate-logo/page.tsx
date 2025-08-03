@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import LogoGenerator from '@/components/LogoGenerator';
 import { getBusinessInfoNeo } from '@/lib/api';
+import supabaseClient from '@/app/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -43,8 +44,82 @@ export default function GenerateLogoPage() {
     const fetchBusinessData = async () => {
       try {
         setLoading(true);
-        const data = await getBusinessInfoNeo(businessId);
-        setBusinessData(data);
+        
+        // Try to get business data from both tables
+        let business = null;
+        
+        // Try businessesNeo first
+        try {
+          const data = await getBusinessInfoNeo(businessId);
+          business = data;
+        } catch (err) {
+          console.log('Business not found in businessesNeo, trying businesses table');
+        }
+        
+        // If not found in businessesNeo, try businesses table
+        if (!business) {
+          const { data: businessNeo, error: businessNeoError } = await supabaseClient
+            .from('businessesNeo')
+            .select('*')
+            .eq('businessId', businessId)
+            .single();
+
+          if (!businessNeoError && businessNeo) {
+            business = businessNeo;
+          } else {
+            // Try businesses table
+            const { data: businessOld, error: businessOldError } = await supabaseClient
+              .from('businesses')
+              .select('*')
+              .eq('business_id', businessId)
+              .single();
+
+            if (!businessOldError && businessOld) {
+              business = businessOld;
+            } else {
+              // Try by id
+              const { data: businessById, error: businessByIdError } = await supabaseClient
+                .from('businesses')
+                .select('*')
+                .eq('id', businessId)
+                .single();
+
+              if (!businessByIdError && businessById) {
+                business = businessById;
+              }
+            }
+          }
+        }
+        
+        if (!business) {
+          throw new Error('Business not found in any table');
+        }
+        
+        // Transform business data to match BusinessInfo interface
+        const transformedBusiness = {
+          id: business.id,
+          businessName: business.businessName || business.business_name || 'Business',
+          ownerName: business.ownerName || business.owner_name || 'Owner',
+          description: business.description || 'A professional business',
+          category: business.category || 'General',
+          products: business.products || '',
+          phone: business.phone || '',
+          email: business.email,
+          address: business.address || '',
+          whatsapp: business.whatsapp,
+          instagram: business.instagram,
+          logoUrl: business.logoUrl || business.logo_url,
+          websiteUrl: business.websiteUrl || business.website_url,
+          subdomain: business.subdomain || business.businessId || business.business_id || business.id,
+          status: business.status || 'live',
+          createdAt: business.createdAt || new Date(business.created_at).getTime(),
+          deployedAt: business.deployedAt || (business.deployed_at ? new Date(business.deployed_at).getTime() : undefined),
+          googleMapsUrl: business.googleMapsUrl || (business.address ? `https://maps.google.com/?q=${encodeURIComponent(business.address)}` : ''),
+          whatsappUrl: business.whatsappUrl || (business.whatsapp ? `https://wa.me/${business.whatsapp.replace(/\D/g, '')}` : ''),
+          instagramUrl: business.instagramUrl || (business.instagram ? `https://instagram.com/${business.instagram.replace('@', '')}` : '')
+        };
+        
+        setBusinessData(transformedBusiness);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch business data');
       } finally {

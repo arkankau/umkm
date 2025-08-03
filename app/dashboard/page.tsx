@@ -17,8 +17,10 @@ interface User {
 
 interface Business {
   id: string;
-  businessName: string;
-  ownerName: string;
+  businessName?: string;
+  business_name?: string;
+  ownerName?: string;
+  owner_name?: string;
   description: string;
   category: string;
   products: string;
@@ -147,7 +149,32 @@ const Dashboard = () => {
         }
         
         const data = await response.json();
-        setBusinesses(data.businesses || []);
+        
+        // Transform old table data to match Business interface
+        const transformedBusinesses = (data.businesses || []).map((business: any) => ({
+          id: business.id,
+          businessName: business.business_name, // Map old field name
+          business_name: business.business_name,
+          ownerName: business.owner_name, // Map old field name
+          owner_name: business.owner_name,
+          description: business.description || '',
+          category: business.category || 'General',
+          products: business.products || '',
+          phone: business.phone || '',
+          email: business.email,
+          address: business.address || '',
+          whatsapp: business.whatsapp,
+          instagram: business.instagram,
+          logoUrl: business.logo_url,
+          websiteUrl: business.website_url,
+          subdomain: business.subdomain,
+          status: business.status || 'not-generated',
+          createdAt: new Date(business.created_at).getTime(),
+          deployedAt: business.deployed_at ? new Date(business.deployed_at).getTime() : undefined,
+          updatedAt: new Date(business.updated_at || business.created_at).getTime()
+        }));
+        
+        setBusinesses(transformedBusinesses);
       }
     } catch (error) {
       console.error('Error fetching businesses:', error);
@@ -274,10 +301,10 @@ const Dashboard = () => {
                 className="cursor-pointer"
               >
                 <Card 
-                  name={business.businessName} 
+                  name={business.businessName || business.business_name || 'Unnamed Business'} 
                   url={viewMode === 'websites' 
-                    ? (business.websiteUrl || `www.untukmukaryamu.com/${business.subdomain || business.businessName.toLowerCase().replace(/\s+/g, '-')}`)
-                    : `${business.ownerName} • ${business.category}`
+                    ? (business.websiteUrl || `www.untukmukaryamu.com/${business.subdomain || (business.businessName || business.business_name || 'business').toLowerCase().replace(/\s+/g, '-')}`)
+                    : `${business.ownerName || business.owner_name || 'Unknown Owner'} • ${business.category || 'General'}`
                   }
                   preview='/image.png'
                 />
