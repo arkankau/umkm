@@ -1,4 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import {
+  GoogleGenAI, Modality
+} from '@google/genai';
 import { createClient } from '@supabase/supabase-js';
 
 const api_key = process.env.GEMINI_API_KEY || 'AIzaSyCIhllWKPJ8yfnYdTQT20rJG1rTf1BsAjo';
@@ -6,29 +8,38 @@ if (!api_key) {
   throw new Error('GEMINI_API_KEY is not set in environment variables');
 }
 
-const genAI = new GoogleGenerativeAI(api_key);
-const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
-
+const ai = new GoogleGenAI({apiKey: api_key});
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function generateImage(prompt: string): Promise<string> {
+  let buffer: Buffer;
   try {
-    const result = await model.generateContent([prompt]);
-    const response = await result.response;
-    const [imagePart] = response.candidates[0].content.parts;
-    
-    if (!imagePart.inlineData?.data) {
-      throw new Error('No image data generated');
-    }
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-preview-image-generation",
+      contents: prompt,
+      config: {
+        responseModalities: [Modality.TEXT, Modality.IMAGE],
+      },
+    });
 
-    return imagePart.inlineData.data;
+    for (const part of response?.candidates?.[0]?.content?.parts) {
+      // Based on the part type, either show the text or save the image
+      if (part.text) {
+        console.log(part.text);
+      } else if (part.inlineData) {
+        const imageData = part.inlineData.data;
+         buffer = Buffer.from(imageData, "base64");
+      }
+    }
+    
   } catch (error) {
     console.error('Error generating image:', error);
     throw error;
   }
+  return buffer;
 }
 
 export async function generateAndUploadLogo(prompt: string, businessId: string): Promise<string> {

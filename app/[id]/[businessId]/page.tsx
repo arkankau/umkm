@@ -79,15 +79,11 @@ export default function Dashboard({ params }: DashboardProps) {
             if (businessError || !business) {
               console.log('Not found by id, trying business_id:', businessId);
               const { data: businessByBusinessId, error: businessIdError } = await supabaseClient
-                .from('businesses')
+                .from('businessesNeo')
                 .select('*')
-                .eq('business_id', businessId)
+                .eq('businessId', businessId)
                 .single();
-              
-              if (!businessIdError && businessByBusinessId) {
-                business = businessByBusinessId;
-                businessError = null;
-              }
+            
             }
 
             if (businessError || !business) {
@@ -99,8 +95,8 @@ export default function Dashboard({ params }: DashboardProps) {
             // Transform the database data to match the frontend interface
             const transformedBusiness = {
               businessId: business.id, // Use the database id as businessId
-              businessName: business.business_name,
-              ownerName: business.owner_name,
+              businessName: business.businessName,
+              ownerName: business.ownerName,
               description: business.description,
               category: business.category,
               products: business.products,
@@ -109,11 +105,11 @@ export default function Dashboard({ params }: DashboardProps) {
               address: business.address,
               whatsapp: business.whatsapp,
               instagram: business.instagram,
-              logoUrl: business.logo_url,
+              logoUrl: business.logoUrl,
               userId: user.id,
               createdAt: business.created_at,
-              websiteUrl: business.website_url,
-              websiteGenerated: !!business.website_url,
+              websiteUrl: business.websiteUrl,
+              websiteGenerated: !!business.websiteUrl,
               subdomain: business.subdomain
             };
 

@@ -276,7 +276,7 @@ const Dashboard = () => {
                 <Card 
                   name={business.businessName} 
                   url={viewMode === 'websites' 
-                    ? (business.websiteUrl || `www.untukmukaryamu.com/${business.subdomain || business.businessName.toLowerCase().replace(/\s+/g, '-')}`)
+                    ? (business.websiteUrl || `www.untukmukaryamu.com/${business.subdomain || business.businessName?.toLowerCase().replace(/\s+/g, '-')}`)
                     : `${business.ownerName} • ${business.category}`
                   }
                   preview='/image.png'
