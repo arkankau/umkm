@@ -1,11 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { submitBusiness, BusinessData, SubmitBusinessResponse } from '../lib/api';
 import WebsitePreview from './WebsitePreview';
 
-export default function BusinessForm() {
+interface BusinessFormProps {
+  initialData?: Partial<BusinessData>;
+  onSubmit?: (formData: BusinessData) => Promise<void>;
+  isEditing?: boolean;
+}
+
+export default function BusinessForm({ initialData, onSubmit, isEditing = false }: BusinessFormProps) {
   const router = useRouter();
   const [formData, setFormData] = useState<BusinessData>({
     businessName: '',
@@ -18,12 +24,23 @@ export default function BusinessForm() {
     address: '',
     whatsapp: '',
     instagram: '',
+    ...initialData
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState<SubmitBusinessResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+
+  // Update form data when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      setFormData(prev => ({
+        ...prev,
+        ...initialData
+      }));
+    }
+  }, [initialData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -40,14 +57,19 @@ export default function BusinessForm() {
     setSubmitResult(null);
 
     try {
-      const result = await submitBusiness(formData);
-      setSubmitResult(result);
-      
-      // Redirect to status page after successful submission
-      setTimeout(() => {
-        router.push(`/status/${result.businessId}`);
-      }, 2000);
-      
+      if (onSubmit) {
+        // If onSubmit is provided, use it (for editing mode)
+        await onSubmit(formData);
+      } else {
+        // Otherwise, use the default submit behavior
+        const result = await submitBusiness(formData);
+        setSubmitResult(result);
+        
+        // Redirect to status page after successful submission
+        setTimeout(() => {
+          router.push(`/status/${result.businessId}`);
+        }, 2000);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -57,7 +79,9 @@ export default function BusinessForm() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Buat Website UMKM Anda</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">
+        {isEditing ? 'Edit Business Information' : 'Buat Website UMKM Anda'}
+      </h2>
       
       {submitResult && (
         <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
@@ -239,17 +263,19 @@ export default function BusinessForm() {
             disabled={isSubmitting}
             className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Mengirim...' : 'Buat Website'}
+            {isSubmitting ? 'Mengirim...' : (isEditing ? 'Update Information' : 'Buat Website')}
           </button>
           
-          <button
-            type="button"
-            onClick={() => setShowPreview(true)}
-            disabled={!formData.businessName || !formData.ownerName || !formData.description || !formData.phone || !formData.address}
-            className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Preview
-          </button>
+          {!isEditing && (
+            <button
+              type="button"
+              onClick={() => setShowPreview(true)}
+              disabled={!formData.businessName || !formData.ownerName || !formData.description || !formData.phone || !formData.address}
+              className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Preview
+            </button>
+          )}
         </div>
       </form>
       

@@ -117,3 +117,12 @@ export async function getBusinessBySubdomain(subdomain: string): Promise<Busines
 
   return response.json();
 } 
+
+export async function generateImage(prompt: string): Promise<string> {
+  const response = await fetch(`${API_BASE_URL}/generate-image`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ prompt }),
+  });
