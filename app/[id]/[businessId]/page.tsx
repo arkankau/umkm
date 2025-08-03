@@ -69,7 +69,7 @@ export default function Dashboard({ params }: DashboardProps) {
 
         // Load business data
         if (businessId) {
-          const { data: business, error: businessError } = await supabaseClient
+          let { data: business, error: businessError } = await supabaseClient
             .from('businessesNeo')
             .select('*')
             .eq('businessId', businessId)
