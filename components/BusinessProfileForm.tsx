@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import supabaseClient from '@/app/lib/supabase';
 import { User } from '@supabase/supabase-js';
+import { generateBusinessId } from '@/lib/utils';
 
 interface Product {
   id: string;
@@ -210,7 +211,12 @@ export default function BusinessProfileForm() {
   };
 
   const handleSubmit = async () => {
+    console.log('🚀 Starting form submission...');
+    console.log('📋 Form data:', formData);
+    console.log('👤 User:', user);
+    
     if (!user) {
+      console.error('❌ No user found');
       alert('Please log in to create a business profile');
       return;
     }
@@ -223,6 +229,7 @@ export default function BusinessProfileForm() {
     setLoading(true);
     
     try {
+      console.log('📤 Starting logo upload...');
       // Upload logo if exists
       let logoUrl = formData.logo || ''; // Keep existing logo URL if it's from AI generation
       if (formData.logoFile) {
@@ -231,6 +238,27 @@ export default function BusinessProfileForm() {
       }
 
       // Create business record
+      const businessUuid = generateBusinessId();
+      console.log('🆔 Generated UUID:', businessUuid);
+      
+      const businessDataToInsert = {
+        id: formData.businessId,
+        businessId: formData.businessId,
+        businessName: formData.businessName,
+        ownerName: formData.ownerName,
+        description: formData.description,
+        category: formData.category,
+        products: formData.products,
+        phone: formData.phone,
+        email: formData.email,
+        address: formData.address,
+        whatsapp: formData.whatsapp,
+        instagram: formData.instagram,
+        logoUrl: logoUrl
+      };
+      
+      console.log('📝 Inserting business data:', businessDataToInsert);
+      
       const { data: businessData, error: businessError } = await supabaseClient
         .from('businesses')
         .insert({
@@ -252,12 +280,20 @@ export default function BusinessProfileForm() {
         .select()
         .single();
 
-      if (businessError) throw businessError;
+      if (businessError) {
+        console.error('❌ Business creation error:', businessError);
+        throw businessError;
+      }
+      
+      console.log('✅ Business created successfully:', businessData);
 
       // Upload product images and create product records
+      console.log('📦 Processing products:', products.length);
       if (products.length > 0) {
+        console.log('🔄 Creating products...');
         const productsToInsert = await Promise.all(
-          products.map(async (product) => {
+          products.map(async (product, index) => {
+            console.log(`📦 Processing product ${index + 1}:`, product.name);
             let imageUrl = '';
             
             if (product.imageFile) {
@@ -265,31 +301,49 @@ export default function BusinessProfileForm() {
               imageUrl = await uploadImageToSupabase(product.imageFile, filename, 'productimages');
             }
             
-            return {
+            const productData = {
               name: product.name,
               description: product.description,
               price: parseFloat(product.price),
               imageUrl: imageUrl,
               business_id: formData.businessId
             };
+            
+            console.log(`📝 Product data for ${product.name}:`, productData);
+            return productData;
           })
         );
 
+        console.log('📝 Inserting all products...');
         const { error: productsError } = await supabaseClient
           .from('products')
           .insert(productsToInsert);
 
-        if (productsError) throw productsError;
+        if (productsError) {
+          console.error('❌ Products creation error:', productsError);
+          throw productsError;
+        }
+        
+        console.log('✅ Products created successfully');
+      } else {
+        console.log('ℹ️ No products to create');
       }
 
+      console.log('🎉 Business profile created successfully!');
       alert('Business profile created successfully!');
       router.push(`/${user.id}/${formData.businessId}`);
       
     } catch (error) {
-      console.error('Error creating business profile:', error);
+      console.error('❌ Error creating business profile:', error);
+      console.error('❌ Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace',
+        error: error
+      });
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       alert(`Error creating business profile: ${errorMessage}. Please try again.`);
     } finally {
+      console.log('🏁 Form submission completed');
       setLoading(false);
     }
   };

@@ -20,7 +20,7 @@ async function deploy(htmlCode, domain) {
   try {
     // Launch browser with enhanced security and performance settings
     browser = await puppeteer.launch({
-      headless: true, // Use new headless mode
+      headless: false, // Use new headless mode
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -113,9 +113,9 @@ async function deploy(htmlCode, domain) {
         console.log('Checking for domain name conflicts...');
         await (new Promise(resolve => setTimeout(resolve, 5000)));
         
-        
-        const conflictExists = await page.locator('::-p-text(Project name already exists)');
-        
+        let conflictObject = await page.locator('::-p-text(Project name already exists)').waitHandle();
+        const conflictExists = await page.evaluate(el => {return el.innerHTML ? true : false}, conflictObject);
+
         if (conflictExists) {
           attempts++;
           newDomain = `${domain}-${attempts}`;
@@ -123,18 +123,20 @@ async function deploy(htmlCode, domain) {
           
           await page.locator('input[placeholder="Enter your domain name"]').fill(newDomain, { delay: 50 });
           await page.locator('button.PagesUploadCard_deploymentBtn__7ZMYf').click({ delay: 100 });
-          await (new Promise(resolve => setTimeout(resolve, 10000)));
-
-          await page.locator('::-p-text(Deploying...)') ? deployed = true : deployed = false;
+          
         } else {
           // No conflict, deployment should proceed
           console.log('No domain conflict, deployment proceeding...');
-          break;
         }
       } catch (error) {
-        console.log('No conflict detected, deployment proceeding...');
-        break;
+        console.error('Error checking for domain conflict:', error);
+        break; // Exit loop if there's an error
       }
+
+      await (new Promise(resolve => setTimeout(resolve, 10000)));
+      const deployMessage = await page.locator('::-p-text(Deploying...)').waitHandle();
+      deployed = await page.evaluate((el) => {return el.innerHTML ? true : false}, deployMessage);
+
     }
     
     // Wait for deployment to complete (look for success indicators)

@@ -70,7 +70,7 @@ export default function Dashboard({ params }: DashboardProps) {
         // Load business data
         if (businessId) {
           const { data: business, error: businessError } = await supabaseClient
-            .from('businesses')
+            .from('businessesNeo')
             .select('*')
             .eq('businessId', businessId)
             .single();
@@ -104,10 +104,6 @@ export default function Dashboard({ params }: DashboardProps) {
     if (businessData?.websiteUrl) {
       window.open(businessData.websiteUrl, '_blank');
     }
-  };
-
-  const handleEditBusiness = () => {
-    router.push(`/${user?.id}/create-new`);
   };
 
   const handleGenerateWebsite = () => {
@@ -258,12 +254,7 @@ export default function Dashboard({ params }: DashboardProps) {
             >
               Create Menu
             </button>
-            <button
-              onClick={handleEditBusiness}
-              className="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors"
-            >
-              Edit Business
-            </button>
+            
             {businessData.websiteUrl && (
               <button
                 onClick={handleViewWebsite}
