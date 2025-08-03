@@ -66,7 +66,7 @@ export class WebsiteGenerator {
 
   // Fallback methods for template-based generation
   private generateHTML(): string {
-    const { businessName, ownerName, description, category, products, phone, address } = this.businessData;
+    const { businessName, ownerName, description, category, products, phone, address, whatsapp, instagram } = this.businessData;
     const categoryDisplay = this.getCategoryDisplayName(category);
     
     return `<!DOCTYPE html>
@@ -142,6 +142,15 @@ export class WebsiteGenerator {
                         <p><a href="tel:${phone}">${phone}</a></p>
                     </div>
                 </div>
+                ${whatsapp ? `
+                <div class="contact-item">
+                    <i class="fab fa-whatsapp"></i>
+                    <div>
+                        <h3>WhatsApp</h3>
+                        <p><a href="https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}" target="_blank">${whatsapp}</a></p>
+                    </div>
+                </div>
+                ` : ''}
                 <div class="contact-item">
                     <i class="fas fa-map-marker-alt"></i>
                     <div>
@@ -149,6 +158,15 @@ export class WebsiteGenerator {
                         <p>${address}</p>
                     </div>
                 </div>
+                ${instagram ? `
+                <div class="contact-item">
+                    <i class="fab fa-instagram"></i>
+                    <div>
+                        <h3>Instagram</h3>
+                        <p><a href="https://instagram.com/${instagram.replace('@', '')}" target="_blank">${instagram}</a></p>
+                    </div>
+                </div>
+                ` : ''}
             </div>
         </div>
     </section>
@@ -336,6 +354,15 @@ body {
     color: ${colors.primary};
 }
 
+.contact-item a {
+    color: ${colors.primary};
+    text-decoration: none;
+}
+
+.contact-item a:hover {
+    text-decoration: underline;
+}
+
 .footer {
     background: #333;
     color: white;
@@ -405,13 +432,7 @@ window.addEventListener('load', () => {
       restaurant: 'Restoran',
       retail: 'Toko Retail',
       service: 'Jasa',
-      technology: 'Teknologi',
-      health: 'Kesehatan',
-      education: 'Pendidikan',
-      automotive: 'Otomotif',
-      beauty: 'Kecantikan',
-      fitness: 'Kebugaran',
-      consulting: 'Konsultan'
+      other: 'Bisnis Lainnya'
     };
     return displayNames[category] || 'Bisnis';
   }
@@ -421,13 +442,7 @@ window.addEventListener('load', () => {
       restaurant: 'utensils',
       retail: 'shopping-bag',
       service: 'tools',
-      technology: 'laptop',
-      health: 'heartbeat',
-      education: 'graduation-cap',
-      automotive: 'car',
-      beauty: 'spa',
-      fitness: 'dumbbell',
-      consulting: 'briefcase'
+      other: 'store'
     };
     return icons[category] || 'store';
   }
@@ -437,13 +452,7 @@ window.addEventListener('load', () => {
       restaurant: { primary: '#e74c3c', secondary: '#c0392b' },
       retail: { primary: '#3498db', secondary: '#2980b9' },
       service: { primary: '#f39c12', secondary: '#e67e22' },
-      technology: { primary: '#9b59b6', secondary: '#8e44ad' },
-      health: { primary: '#2ecc71', secondary: '#27ae60' },
-      education: { primary: '#1abc9c', secondary: '#16a085' },
-      automotive: { primary: '#34495e', secondary: '#2c3e50' },
-      beauty: { primary: '#e91e63', secondary: '#c2185b' },
-      fitness: { primary: '#ff5722', secondary: '#e64a19' },
-      consulting: { primary: '#607d8b', secondary: '#455a64' }
+      other: { primary: '#9b59b6', secondary: '#8e44ad' }
     };
     return colors[category] || { primary: '#3498db', secondary: '#2980b9' };
   }

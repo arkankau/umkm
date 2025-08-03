@@ -20,7 +20,7 @@ async function deploy(htmlCode, domain) {
   try {
     // Launch browser with enhanced security and performance settings
     browser = await puppeteer.launch({
-      headless: false, // Use new headless mode
+      headless: true, // Use new headless mode
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
