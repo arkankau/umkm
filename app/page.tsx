@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Navbar from "@/components/navbar";
 import Link from "next/link";
-import BusinessForm from '../components/BusinessForm';
 
 export default function Home() {
   return (
@@ -94,17 +93,25 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Business Form Section */}
+      {/* Call to Action Section */}
       <div id="create-website" className="px-15 py-20 relative z-10 bg-white">
         <div className="text-center mb-16">
           <h2 className="font-mont font-bold text-4xl mb-4">Create Your Website Now</h2>
           <p className="font-inter text-xl text-gray-600 max-w-2xl mx-auto">
-            Fill out the form below and get your AI-generated website in minutes
+            Get your AI-generated website in minutes with our professional form
           </p>
         </div>
 
-        <div className="max-w-4xl mx-auto">
-          <BusinessForm />
+        <div className="max-w-4xl mx-auto text-center">
+          <Link 
+            href="/id/create-new" 
+            className="inline-block bg-button font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:bg-black transition-colors duration-300 shadow-lg hover:shadow-xl"
+          >
+            Start Creating Your Website
+          </Link>
+          <p className="mt-4 text-gray-600">
+            You'll need to log in first to access the website creation form
+          </p>
         </div>
       </div>
 

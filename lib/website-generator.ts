@@ -1,29 +1,21 @@
-import { BusinessData } from './api';
-import { FreeAIService } from './free-ai-service';
-
-export interface GeneratedWebsite {
-  html: string;
-  css: string;
-  js: string;
-  assets: {
-    images: string[];
-  };
-}
+import { BusinessData, GeneratedWebsite } from './types';
+import { AIWebsiteService } from './ai-website-service';
+import { IntelligentTemplateGenerator } from './intelligent-template-generator';
 
 export class WebsiteGenerator {
   private businessData: BusinessData;
-  private freeAIService: FreeAIService;
+  private aiService: AIWebsiteService;
 
   constructor(businessData: BusinessData) {
     this.businessData = businessData;
-    this.freeAIService = new FreeAIService();
+    this.aiService = new AIWebsiteService();
   }
 
   async generate(): Promise<GeneratedWebsite> {
     try {
-      // Use Free AI to generate website content
-      console.log('Generating website with Free AI...');
-      const aiWebsite = await this.freeAIService.generateWebsite(this.businessData);
+      // Use AI to generate website content
+      console.log('Generating website with AI...');
+      const aiWebsite = await this.aiService.generateWebsite(this.businessData);
       
       if (aiWebsite.success) {
         return {
@@ -32,20 +24,35 @@ export class WebsiteGenerator {
           js: aiWebsite.js,
           assets: {
             images: this.generateImages()
+          },
+          metadata: {
+            generatedAt: new Date().toISOString(),
+            version: 1,
+            businessData: this.businessData,
+            lastPrompt: undefined
           }
         };
       } else {
-        throw new Error(aiWebsite.error || 'Free AI generation failed');
+        throw new Error(aiWebsite.error || 'AI generation failed');
       }
     } catch (error) {
-      console.error('Free AI generation failed, falling back to template:', error);
+      console.error('AI generation failed, falling back to template:', error);
       // Fallback to template-based generation
+      const template = new IntelligentTemplateGenerator(this.businessData);
+      const result = template.generate();
+      
       return {
-        html: this.generateHTML(),
-        css: this.generateCSS(),
-        js: this.generateJS(),
+        html: result.html,
+        css: result.css,
+        js: result.js,
         assets: {
           images: this.generateImages()
+        },
+        metadata: {
+          generatedAt: new Date().toISOString(),
+          version: 1,
+          businessData: this.businessData,
+          lastPrompt: undefined
         }
       };
     }
@@ -459,14 +466,13 @@ window.addEventListener('load', () => {
 
   // Generate complete HTML file with embedded CSS and JS
   generateCompleteHTML(): string {
-    const html = this.generateHTML();
-    const css = this.generateCSS();
-    const js = this.generateJS();
+    const template = new IntelligentTemplateGenerator(this.businessData);
+    const result = template.generate();
     
     // Replace the placeholder comments with actual CSS and JS
-    const completeHTML = html
-      .replace('/* CSS will be injected here */', css)
-      .replace('// JavaScript will be injected here', js);
+    const completeHTML = result.html
+      .replace('/* CSS will be injected here */', result.css)
+      .replace('// JavaScript will be injected here', result.js);
     
     return completeHTML;
   }
