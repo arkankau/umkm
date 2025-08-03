@@ -11,23 +11,33 @@
     "test:deployment": "ts-node test-website-deployment.ts"
   },
   "dependencies": {
+    "@google/genai": "^1.12.0",
+    "@google/generative-ai": "^0.21.0",
+    "@radix-ui/react-label": "^2.0.2",
+    "@radix-ui/react-slot": "^1.0.2",
     "@supabase/supabase-js": "^2.53.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "dotenv": "^17.2.1",
     "lucide-react": "^0.536.0",
     "next": "15.4.5",
     "puppeteer": "^24.15.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "supabase": "^2.33.9"
+    "supabase": "^2.33.9",
+    "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.9",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
   }
 }

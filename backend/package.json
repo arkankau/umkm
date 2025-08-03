@@ -30,6 +30,7 @@
   "license": "MIT",
   "dependencies": {
     "@11ty/eleventy": "^2.0.1",
+    "google-auth-library": "^10.2.0",
     "nunjucks": "^3.2.4",
     "puppeteer": "^24.15.0"
   },

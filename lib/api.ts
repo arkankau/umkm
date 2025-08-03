@@ -106,6 +106,18 @@ export async function getBusinessInfo(businessId: string): Promise<BusinessInfo>
   return response.json();
 }
 
+// Get business information from businessesNeo
+export async function getBusinessInfoNeo(businessId: string): Promise<BusinessInfo> {
+  const response = await fetch(`${API_BASE_URL}/get-business-neo?businessId=${businessId}`);
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to get business info');
+  }
+
+  return response.json();
+}
+
 // Get business by subdomain
 export async function getBusinessBySubdomain(subdomain: string): Promise<BusinessInfo> {
   const response = await fetch(`${API_BASE_URL}/get-business?subdomain=${subdomain}`);
