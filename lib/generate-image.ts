@@ -1,21 +1,17 @@
-import {
-  GoogleGenAI, Modality
-} from '@google/genai';
-import { createClient } from '@supabase/supabase-js';
+import { GoogleGenAI, Modality } from "@google/genai"
+import supabaseClient from '@/app/lib/supabase';
+import fs from 'fs';
 
-const api_key = process.env.GEMINI_API_KEY || 'AIzaSyCIhllWKPJ8yfnYdTQT20rJG1rTf1BsAjo';
+const api_key = process.env.GEMINI_API_KEY;
 if (!api_key) {
   throw new Error('GEMINI_API_KEY is not set in environment variables');
 }
 
 const ai = new GoogleGenAI({apiKey: api_key});
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function generateImage(prompt: string): Promise<string> {
-  let buffer: Buffer;
+  let buffer: Buffer | undefined;
+
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash-preview-image-generation",
@@ -25,71 +21,58 @@ export async function generateImage(prompt: string): Promise<string> {
       },
     });
 
-    for (const part of response?.candidates?.[0]?.content?.parts) {
-      // Based on the part type, either show the text or save the image
+    for (const part of response?.candidates?.[0]?.content?.parts || []) {
       if (part.text) {
         console.log(part.text);
       } else if (part.inlineData) {
         const imageData = part.inlineData.data;
-         buffer = Buffer.from(imageData, "base64");
+        buffer = Buffer.from(imageData, "base64");
       }
     }
-    
   } catch (error) {
     console.error('Error generating image:', error);
     throw error;
   }
-  return buffer;
+
+  if (!buffer) throw new Error("No image buffer generated");
+  return buffer.toString("base64"); // or send this to frontend as data:image/jpeg;base64,...
 }
 
 export async function generateAndUploadLogo(prompt: string, businessId: string): Promise<string> {
   try {
     // Generate the image
-    const imageData = await generateImage(prompt);
+    const imageBase64 = await generateImage(prompt);
     
-    // Convert base64 to blob
-    const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
-    const blob = Buffer.from(base64Data, 'base64');
+    // Convert base64 to buffer
+    const buffer = Buffer.from(imageBase64, 'base64');
+    console.log(buffer);
+    // Upload to Supabase Storage
+    const fileName = `${businessId}-logo.png`;
     
-    // Generate unique filename
-    const timestamp = Date.now();
-    const filename = `logo-${businessId}-${timestamp}.png`;
-    
-    // Upload to Supabase storage bucket
-    const { data: uploadData, error: uploadError } = await supabase.storage
+
+    const { data, error } = await supabaseClient.storage
       .from('productimages')
-      .upload(filename, blob, {
+      .upload(fileName, buffer, {
         contentType: 'image/png',
-        cacheControl: '3600',
         upsert: false
       });
-    
-    if (uploadError) {
-      console.error('Error uploading to Supabase:', uploadError);
-      throw new Error('Failed to upload image to storage');
+
+    if (error) {
+      console.log("Upload error")
+      throw error;
     }
-    
-    // Get public URL
-    const { data: urlData } = supabase.storage
+
+    // Get the public URL
+    const { data: { publicUrl } } = supabaseClient.storage
       .from('productimages')
-      .getPublicUrl(filename);
-    
-    const publicUrl = urlData.publicUrl;
-    
-    // Update business record with new logo URL
-    const { error: updateError } = await supabase
-      .from('businessesNeo')
-      .update({ logoUrl: publicUrl })
-      .eq('id', businessId);
-    
-    if (updateError) {
-      console.error('Error updating business logo:', updateError);
-      throw new Error('Failed to update business logo URL');
-    }
-    
+      .getPublicUrl(fileName);
+
     return publicUrl;
+
   } catch (error) {
     console.error('Error in generateAndUploadLogo:', error);
     throw error;
   }
 }
+
+
