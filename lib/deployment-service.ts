@@ -1,6 +1,6 @@
 import { BusinessData } from './api';
 import { generateCompleteHTML } from './website-generator';
-import { deployWithPuppeteer } from './puppeteer-deploy';
+import puppeteerDeploy from './puppeteer-deploy';
 
 export interface DeploymentResult {
   success: boolean;
@@ -9,7 +9,13 @@ export interface DeploymentResult {
   deployedAt?: number;
   error?: string;
   deploymentMethod?: string;
+  businessId?: string;
+  status?: 'processing' | 'live' | 'error';
+  message?: string;
 }
+
+// In-memory storage for deployment status (in production, use a database)
+const deploymentStatus = new Map<string, DeploymentResult>();
 
 export class DeploymentService {
   constructor() {
@@ -24,23 +30,29 @@ export class DeploymentService {
       
       // Deploy using puppeteer directly
       console.log('Deploying website using puppeteer...');
-      const result = await deployWithPuppeteer(htmlContent, domain);
+      const result = await puppeteerDeploy(htmlContent, domain);
 
-      return {
+      const deploymentResult: DeploymentResult = {
         success: result.success,
         url: result.url,
         domain: result.domain,
         deployedAt: result.deployedAt,
         deploymentMethod: 'puppeteer',
-        error: result.error
+        error: result.error,
+        status: result.success ? 'live' : 'error',
+        message: result.success ? 'Website deployed successfully' : result.error || 'Deployment failed'
       };
+
+      return deploymentResult;
 
     } catch (error) {
       console.error('Deployment failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Deployment failed',
-        deploymentMethod: 'puppeteer'
+        deploymentMethod: 'puppeteer',
+        status: 'error',
+        message: 'Deployment failed'
       };
     }
   }
@@ -57,16 +69,20 @@ export class DeploymentService {
       console.log('API deployment successful (mock)');
       return {
         success: true,
-        url: `https://${domain}.umkm.id`,
+        url: `https://${domain}.edgeone.app`,
         domain: domain,
         deployedAt: Date.now(),
-        deploymentMethod: 'api'
+        deploymentMethod: 'api',
+        status: 'live',
+        message: 'Website deployed successfully via API'
       };
     } catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'API deployment failed',
-        deploymentMethod: 'api'
+        deploymentMethod: 'api',
+        status: 'error',
+        message: 'API deployment failed'
       };
     }
   }
@@ -92,19 +108,35 @@ export class DeploymentService {
     try {
       console.log(`Getting deployment status for business: ${businessId}`);
       
+      // Check if we have stored deployment status
+      const storedStatus = deploymentStatus.get(businessId);
+      if (storedStatus) {
+        console.log(`Found stored status for ${businessId}:`, storedStatus);
+        return storedStatus;
+      }
+
       // For now, return a mock successful deployment status
       // In a real implementation, this would check the actual deployment status
+      console.log(`No stored status found for ${businessId}, returning mock status`);
       return {
         success: true,
-        url: `https://${businessId}.umkm.id`,
+        url: `https://${businessId}.edgeone.app`,
         domain: businessId,
         deployedAt: Date.now(),
-        deploymentMethod: 'puppeteer'
+        deploymentMethod: 'puppeteer',
+        status: 'live',
+        message: 'Website is live'
       };
     } catch (error) {
       console.error('Error getting deployment status:', error);
       return null;
     }
+  }
+
+  // Store deployment status for a business
+  storeDeploymentStatus(businessId: string, status: DeploymentResult): void {
+    deploymentStatus.set(businessId, status);
+    console.log(`Stored deployment status for ${businessId}:`, status);
   }
 }
 

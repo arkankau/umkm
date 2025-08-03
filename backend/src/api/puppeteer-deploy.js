@@ -30,7 +30,7 @@ async function deploy(htmlCode, domain) {
   try {
     // Launch browser with enhanced security and performance settings
     browser = await puppeteer.launch({
-      headless: 'new', // Use new headless mode
+      headless: false, // Use new headless mode
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -55,14 +55,15 @@ async function deploy(htmlCode, domain) {
         '--no-pings',
         '--disable-web-security',
         '--disable-features=VizDisplayCompositor'
-      ]
+      ],
+      timeout: 60000, // Set a longer timeout for browser launch
     });
 
     const page = await browser.newPage();
     
     // Set random user agent and viewport
     await page.setUserAgent(getRandomUserAgent());
-    await page.setViewport(getRandomViewport());
+    await page.setViewport({width: 1024, height: 768});
     
     // Set extra headers to appear more human-like
     await page.setExtraHTTPHeaders({
@@ -73,130 +74,33 @@ async function deploy(htmlCode, domain) {
       'Pragma': 'no-cache'
     });
 
-    // Clear all cookies, storage, and session data to ensure we're not logged in
-    console.log('Clearing all cookies and session data...');
+    // Clear cookies and storage before starting
     const client = await page.target().createCDPSession();
-    
-    // Clear cookies
     await client.send('Network.clearBrowserCookies');
     await client.send('Network.clearBrowserCache');
-    
-    // Clear all storage types (with error handling for security restrictions)
-    await page.evaluate(() => {
-      try {
-        // Clear localStorage
-        if (typeof localStorage !== 'undefined') {
-          localStorage.clear();
-        }
-      } catch (error) {
-        console.log('localStorage access blocked by security policy');
-      }
-      
-      try {
-        // Clear sessionStorage
-        if (typeof sessionStorage !== 'undefined') {
-          sessionStorage.clear();
-        }
-      } catch (error) {
-        console.log('sessionStorage access blocked by security policy');
-      }
-      
-      try {
-        // Clear all cookies manually
-        if (document.cookie) {
-          document.cookie.split(";").forEach(function(c) { 
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-          });
-        }
-      } catch (error) {
-        console.log('Cookie clearing blocked by security policy');
-      }
-      
-      try {
-        // Clear IndexedDB
-        if ('indexedDB' in window) {
-          indexedDB.databases().then(databases => {
-            databases.forEach(db => {
-              indexedDB.deleteDatabase(db.name);
-            });
-          });
-        }
-      } catch (error) {
-        console.log('IndexedDB access blocked by security policy');
-      }
-      
-      try {
-        // Clear service workers
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(registrations => {
-            registrations.forEach(registration => {
-              registration.unregister();
-            });
-          });
-        }
-      } catch (error) {
-        console.log('Service worker access blocked by security policy');
-      }
-    });
-    
-    // Additional cookie clearing for specific domains
-    await page.setCookie();
-    
-    console.log('All cookies and session data cleared successfully');
 
     console.log('Navigating to EdgeOne Pages...');
     await page.goto('https://edgeone.ai/pages/drop', { 
-      waitUntil: 'networkidle2',
+      waitUntil: 'load',
       timeout: 30000 
     });
 
-    // Clear cookies again after navigation in case any were set
-    console.log('Clearing cookies after navigation...');
-    await client.send('Network.clearBrowserCookies');
-    await page.evaluate(() => {
-      try {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.clear();
-        }
-      } catch (error) {
-        console.log('localStorage access blocked by security policy');
-      }
-      
-      try {
-        if (typeof sessionStorage !== 'undefined') {
-          sessionStorage.clear();
-        }
-      } catch (error) {
-        console.log('sessionStorage access blocked by security policy');
-      }
-      
-      try {
-        if (document.cookie) {
-          document.cookie.split(";").forEach(function(c) { 
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-          });
-        }
-      } catch (error) {
-        console.log('Cookie clearing blocked by security policy');
-      }
-    });
+    const input = await page.locator('input[placeholder="Enter your domain name"]').waitHandle();
+    // console.log(await page.evaluate(el => { return el.outerHTML ? el.outerHTML : "Not found"}, input));
 
-    // Reload the page to ensure we're starting fresh without any session data
-    console.log('Reloading page to ensure fresh session...');
-    await page.reload({ waitUntil: 'networkidle2' });
-
-    // Wait for the page to load completely
-    await page.waitForSelector('input[placeholder="Enter your domain name"]', { timeout: 10000 });
-    
     console.log('Filling domain name...');
-    await page.locator('input[placeholder="Enter your domain name"]').fill(domain, { delay: 100 });
-    
+    await input.type(`${domain}`, { delay: 100 });
+
+
     console.log('Clicking paste code button...');
     await page.locator('::-p-text(Paste Code)').click({ delay: 100 });
     
     console.log('Filling HTML code...');
-    await page.locator('textarea.PagesUploadCard_inputTextarea__YujEt').fill(htmlCode, { delay: 50 });
-    
+    const textArea = await page.locator('textarea.PagesUploadCard_inputTextarea__YujEt').waitHandle();
+    await page.evaluate((el, code) => {
+      el.value = code;
+    }, textArea, htmlCode);
+
     // Wait for the deploy button to be enabled
     console.log('Waiting for deploy button to be enabled...');
     await page.waitForFunction(() => {

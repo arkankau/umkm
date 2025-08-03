@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Get real deployment status from EdgeOne (or demo mode)
+    // Get real deployment status from deployment service
     const result = await deploymentService.getDeploymentStatus(businessId);
 
     if (!result) {
@@ -35,16 +35,16 @@ export default async function handler(req, res) {
                     result.status === 'pending' ? '25%' : '0%';
 
     const response = {
-      businessId: result.businessId,
-      subdomain: result.subdomain,
-      domain: result.domain,
-      status: result.status,
+      businessId: businessId,
+      subdomain: result.domain || businessId,
+      domain: result.domain || businessId,
+      status: result.status || 'processing',
       businessName: 'Your Business',
-      websiteUrl: result.status === 'live' ? `https://${result.domain}` : undefined,
+      websiteUrl: result.status === 'live' ? result.url : undefined,
       processingTime: result.status === 'live' ? 30 : Math.floor(Math.random() * 20) + 10,
       createdAt: Date.now() - 86400000, // 1 day ago
-      deployedAt: result.status === 'live' ? Date.now() - 3600000 : undefined,
-      message: result.message,
+      deployedAt: result.deployedAt,
+      message: result.message || 'Processing your website deployment...',
       progress,
       error: result.error
     };

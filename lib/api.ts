@@ -21,11 +21,14 @@ export interface SubmitBusinessResponse {
   subdomain: string;
   status: string;
   message: string;
+  url?: string;
+  deployedAt?: number;
 }
 
 export interface BusinessStatus {
   businessId: string;
   subdomain: string;
+  domain?: string;
   status: 'processing' | 'live' | 'error';
   businessName: string;
   websiteUrl?: string;
@@ -35,6 +38,7 @@ export interface BusinessStatus {
   error?: string;
   message: string;
   progress: string;
+  deploymentMethod?: string;
 }
 
 export interface BusinessInfo {

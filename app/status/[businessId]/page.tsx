@@ -13,8 +13,10 @@ export default function StatusPage({ params }: { params: Promise<{ businessId: s
     const initializePage = async () => {
       try {
         const resolvedParams = await params;
+        console.log('Resolved businessId:', resolvedParams.businessId);
         setBusinessId(resolvedParams.businessId);
       } catch (err) {
+        console.error('Error resolving params:', err);
         setError('Failed to load business ID');
         setLoading(false);
       }
@@ -24,13 +26,19 @@ export default function StatusPage({ params }: { params: Promise<{ businessId: s
   }, [params]);
 
   useEffect(() => {
-    if (!businessId) return;
+    if (!businessId) {
+      console.log('No businessId available yet');
+      return;
+    }
 
+    console.log('Fetching status for businessId:', businessId);
     const fetchStatus = async () => {
       try {
         const result = await getBusinessStatus(businessId);
+        console.log('Status result:', result);
         setStatus(result);
       } catch (err) {
+        console.error('Error fetching status:', err);
         setError(err instanceof Error ? err.message : 'Failed to load status');
       } finally {
         setLoading(false);
@@ -50,6 +58,9 @@ export default function StatusPage({ params }: { params: Promise<{ businessId: s
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading status...</p>
+          {businessId && (
+            <p className="text-sm text-gray-500 mt-2">Business ID: {businessId}</p>
+          )}
         </div>
       </div>
     );
@@ -62,6 +73,9 @@ export default function StatusPage({ params }: { params: Promise<{ businessId: s
           <div className="text-red-600 text-6xl mb-4">⚠️</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Error</h1>
           <p className="text-gray-600">{error}</p>
+          {businessId && (
+            <p className="text-sm text-gray-500 mt-2">Business ID: {businessId}</p>
+          )}
         </div>
       </div>
     );
@@ -73,10 +87,17 @@ export default function StatusPage({ params }: { params: Promise<{ businessId: s
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Not Found</h1>
           <p className="text-gray-600">Business not found</p>
+          {businessId && (
+            <p className="text-sm text-gray-500 mt-2">Business ID: {businessId}</p>
+          )}
         </div>
       </div>
     );
   }
+
+  // Extract domain from businessId if it looks like a domain
+  const isBusinessIdDomain = businessId.includes('.') || businessId.includes('-');
+  const displayBusinessId = isBusinessIdDomain ? businessId : status.businessId;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -117,14 +138,23 @@ export default function StatusPage({ params }: { params: Promise<{ businessId: s
             </div>
             
             <div className="flex justify-between">
-              <span className="text-gray-600">Business ID:</span>
-              <span className="font-mono text-sm">{status.businessId}</span>
+              <span className="text-gray-600">Domain:</span>
+              <span className="font-mono text-sm">{displayBusinessId}</span>
             </div>
             
-            <div className="flex justify-between">
-              <span className="text-gray-600">Subdomain:</span>
-              <span className="font-mono text-sm">{status.subdomain}</span>
-            </div>
+            {status.subdomain && status.subdomain !== displayBusinessId && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Subdomain:</span>
+                <span className="font-mono text-sm">{status.subdomain}</span>
+              </div>
+            )}
+
+            {status.domain && status.domain !== displayBusinessId && status.domain !== status.subdomain && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Original Domain:</span>
+                <span className="font-mono text-sm">{status.domain}</span>
+              </div>
+            )}
             
             {status.websiteUrl && (
               <div className="flex justify-between">
@@ -139,11 +169,25 @@ export default function StatusPage({ params }: { params: Promise<{ businessId: s
                 </a>
               </div>
             )}
+
+            {status.deploymentMethod && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Deployment Method:</span>
+                <span className="text-sm capitalize">{status.deploymentMethod}</span>
+              </div>
+            )}
             
             {status.processingTime && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Processing Time:</span>
                 <span className="text-sm">{(status.processingTime / 1000).toFixed(1)}s</span>
+              </div>
+            )}
+
+            {status.deployedAt && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Deployed At:</span>
+                <span className="text-sm">{new Date(status.deployedAt).toLocaleString()}</span>
               </div>
             )}
           </div>
@@ -154,20 +198,34 @@ export default function StatusPage({ params }: { params: Promise<{ businessId: s
             </p>
             
             {status.status === 'live' && status.websiteUrl && (
-              <a
-                href={status.websiteUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                View Website
-              </a>
+              <div className="space-y-3">
+                <a
+                  href={status.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  View Website
+                </a>
+                <p className="text-sm text-gray-500">
+                  Your website has been successfully deployed and is now live!
+                </p>
+              </div>
             )}
             
             {status.status === 'error' && status.error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <p className="text-red-800 font-medium">Error:</p>
                 <p className="text-red-700 text-sm">{status.error}</p>
+              </div>
+            )}
+
+            {status.status === 'processing' && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-blue-800 font-medium">Processing...</p>
+                <p className="text-blue-700 text-sm">
+                  Your website is being deployed. This may take a few minutes.
+                </p>
               </div>
             )}
           </div>

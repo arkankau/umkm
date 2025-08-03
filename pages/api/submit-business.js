@@ -30,19 +30,46 @@ export default async function handler(req, res) {
       });
     }
 
+    // Generate initial subdomain for deployment
+    const initialSubdomain = businessData.businessName.toLowerCase().replace(/\s+/g, '-');
+
     // Deploy website using EdgeOne (or demo mode)
     console.log('Starting deployment for:', businessData.businessName);
-    const result = await deploymentService.deployWebsite(businessData);
+    const result = await deploymentService.deployWebsite(businessData, initialSubdomain);
 
     if (result.success) {
+      // Extract the domain from the final URL to use as businessId
+      let businessId = result.domain || initialSubdomain;
+      
+      // If we have a full URL, extract just the domain part
+      if (result.url) {
+        try {
+          const url = new URL(result.url);
+          businessId = url.hostname.replace('.edgeone.app', '');
+        } catch (error) {
+          console.log('Could not parse URL, using domain:', result.domain);
+          businessId = result.domain || initialSubdomain;
+        }
+      }
+
+      // Store the deployment result with the correct businessId
+      if (businessId !== initialSubdomain) {
+        // Update the stored deployment status with the correct businessId
+        deploymentService.storeDeploymentStatus(businessId, {
+          ...result,
+          businessId: businessId
+        });
+      }
+
       return res.status(200).json({
         success: true,
-        businessId: result.businessId,
-        subdomain: result.subdomain,
-        domain: result.domain,
-        status: result.status,
-        message: result.message,
-        error: result.error
+        businessId: businessId,
+        subdomain: businessId,
+        domain: businessId,
+        status: 'processing',
+        message: 'Website deployment started successfully',
+        url: result.url,
+        deployedAt: result.deployedAt
       });
     } else {
       return res.status(500).json({
