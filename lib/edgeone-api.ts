@@ -267,6 +267,31 @@ export class EdgeOneAPI {
       return `${baseSubdomain}${timestamp}${randomSuffix}`;
     }
   }
+
+  // Note: Logo generation has been moved to Gemini Image Service
+  // This method is deprecated and will be removed in future versions
+  async generateLogo(prompt: string, businessName: string): Promise<{ success: boolean; imageUrl?: string; error?: string }> {
+    console.warn('EdgeOne logo generation is deprecated. Please use Gemini Image Service instead.');
+    
+    try {
+      // Import Gemini service dynamically to avoid circular dependencies
+      const { geminiImageService } = await import('./gemini-image-service');
+      
+      const result = await geminiImageService.generateLogo({
+        businessName,
+        businessType: 'business',
+        description: prompt || `A professional business called ${businessName}`
+      });
+      
+      return result;
+    } catch (error) {
+      console.error('Logo generation error:', error);
+      return {
+        success: false,
+        error: `Logo generation error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
 }
 
 // Initialize EdgeOne API with environment variables

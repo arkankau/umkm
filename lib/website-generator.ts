@@ -23,7 +23,7 @@ export class WebsiteGenerator {
           css: aiWebsite.css,
           js: aiWebsite.js,
           assets: {
-            images: this.generateImages()
+            images: await this.generateImages()
           },
           metadata: {
             generatedAt: new Date().toISOString(),
@@ -46,7 +46,7 @@ export class WebsiteGenerator {
         css: result.css,
         js: result.js,
         assets: {
-          images: this.generateImages()
+          images: await this.generateImages()
         },
         metadata: {
           generatedAt: new Date().toISOString(),
@@ -58,8 +58,29 @@ export class WebsiteGenerator {
     }
   }
 
-  private generateImages(): string[] {
-    // Generate placeholder images based on category
+  private async generateImages(): Promise<string[]> {
+    try {
+      // Try to use Gemini for image generation
+      const { geminiImageService } = await import('./gemini-image-service');
+      
+      if (geminiImageService.isAvailable()) {
+        console.log('Using Gemini for business image generation');
+        const images = await geminiImageService.generateBusinessImages({
+          businessName: this.businessData.businessName,
+          businessType: this.businessData.category,
+          description: this.businessData.description,
+          products: this.businessData.products
+        });
+        
+        if (images.length > 0) {
+          return images;
+        }
+      }
+    } catch (error) {
+      console.error('Gemini image generation failed, using fallback:', error);
+    }
+    
+    // Fallback to placeholder images
     const { category } = this.businessData;
     const imageCount = Math.floor(Math.random() * 3) + 2; // 2-4 images
     const images = [];

@@ -12,6 +12,9 @@ export default function WebsitePreview({ businessData, onClose }: WebsitePreview
   const [previewHtml, setPreviewHtml] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [modificationRequest, setModificationRequest] = useState<string>('');
+  const [isModifying, setIsModifying] = useState(false);
+  const [modificationHistory, setModificationHistory] = useState<string[]>([]);
 
   useEffect(() => {
     const generatePreview = async () => {
@@ -19,7 +22,8 @@ export default function WebsitePreview({ businessData, onClose }: WebsitePreview
         setLoading(true);
         setError(null);
 
-        const response = await fetch('/api/preview-website', {
+        // Use template-based generation for initial preview (no Gemini API)
+        const response = await fetch('/api/preview-website-template', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -56,6 +60,43 @@ export default function WebsitePreview({ businessData, onClose }: WebsitePreview
       </div>
     );
   }
+
+  const handleModification = async () => {
+    if (!modificationRequest.trim()) return;
+    
+    try {
+      setIsModifying(true);
+      setError(null);
+      
+      // Add to modification history
+      setModificationHistory(prev => [...prev, modificationRequest]);
+      
+      // Call Gemini API for modification
+      const response = await fetch('/api/modify-website', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentHtml: previewHtml,
+          modificationRequest: modificationRequest,
+          businessData: businessData
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to modify website');
+      }
+
+      const { modifiedHtml } = await response.json();
+      setPreviewHtml(modifiedHtml);
+      setModificationRequest('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to modify website');
+    } finally {
+      setIsModifying(false);
+    }
+  };
 
   if (error) {
     return (
@@ -100,6 +141,48 @@ export default function WebsitePreview({ businessData, onClose }: WebsitePreview
               title="Website Preview"
               sandbox="allow-scripts allow-same-origin"
             />
+          </div>
+        </div>
+
+        {/* Modification Panel */}
+        <div className="p-4 border-t bg-blue-50">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                💡 Request Website Changes (Powered by AI)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={modificationRequest}
+                  onChange={(e) => setModificationRequest(e.target.value)}
+                  placeholder="e.g., change the color to blue, make the font bigger, add a contact form..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isModifying}
+                />
+                <button
+                  onClick={handleModification}
+                  disabled={!modificationRequest.trim() || isModifying}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isModifying ? 'Modifying...' : 'Apply Changes'}
+                </button>
+              </div>
+            </div>
+            
+            {/* Modification History */}
+            {modificationHistory.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Recent Changes:</h4>
+                <div className="space-y-1">
+                  {modificationHistory.slice(-3).map((request, index) => (
+                    <div key={index} className="text-xs text-gray-600 bg-white px-2 py-1 rounded border">
+                      &quot;{request}&quot;
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

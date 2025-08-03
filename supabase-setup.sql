@@ -1,4 +1,4 @@
--- Create businesses table for OneStopUMKM
+-- Create businesses table for Untuk Mu Karya Mu
 CREATE TABLE IF NOT EXISTS businesses (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     business_name VARCHAR(255) NOT NULL,

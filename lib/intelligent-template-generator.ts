@@ -41,7 +41,7 @@ export class IntelligentTemplateGenerator {
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <i class="fas fa-${icon}"></i>
+                ${this.businessData.logoUrl ? `<img src="${this.businessData.logoUrl}" alt="${businessName} Logo" class="logo-image">` : `<i class="fas fa-${icon}"></i>`}
                 <span>${businessName}</span>
             </div>
             <ul class="nav-menu" id="nav-menu">
@@ -291,6 +291,13 @@ body {
 
 .nav-logo i {
     font-size: 2rem;
+}
+
+.nav-logo .logo-image {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 8px;
 }
 
 .nav-menu {
@@ -755,56 +762,63 @@ console.log('Website loaded successfully!');
   }
 
   private getCategoryColors(category: string): { primary: string; secondary: string; accent: string } {
+    // Use the brand colors from the logo: green, yellow, black, red
+    const brandColors = {
+      primary: '#22c55e',    // Green from logo
+      secondary: '#eab308',  // Yellow from logo
+      accent: '#dc2626'      // Red from logo
+    };
+
     const colorMap: { [key: string]: { primary: string; secondary: string; accent: string } } = {
       restaurant: {
-        primary: '#e74c3c',
-        secondary: '#c0392b',
-        accent: '#f39c12'
+        primary: brandColors.primary,
+        secondary: brandColors.secondary,
+        accent: brandColors.accent
       },
       retail: {
-        primary: '#3498db',
-        secondary: '#2980b9',
-        accent: '#e74c3c'
+        primary: brandColors.primary,
+        secondary: brandColors.secondary,
+        accent: brandColors.accent
       },
       service: {
-        primary: '#2ecc71',
-        secondary: '#27ae60',
-        accent: '#f39c12'
+        primary: brandColors.primary,
+        secondary: brandColors.secondary,
+        accent: brandColors.accent
       },
       technology: {
-        primary: '#9b59b6',
-        secondary: '#8e44ad',
-        accent: '#3498db'
+        primary: brandColors.primary,
+        secondary: brandColors.secondary,
+        accent: brandColors.accent
       },
       health: {
-        primary: '#e74c3c',
-        secondary: '#c0392b',
-        accent: '#2ecc71'
+        primary: brandColors.primary,
+        secondary: brandColors.secondary,
+        accent: brandColors.accent
       },
       beauty: {
-        primary: '#e91e63',
-        secondary: '#c2185b',
-        accent: '#ff9800'
+        primary: brandColors.primary,
+        secondary: brandColors.secondary,
+        accent: brandColors.accent
       },
       education: {
-        primary: '#2196f3',
-        secondary: '#1976d2',
-        accent: '#ffc107'
+        primary: brandColors.primary,
+        secondary: brandColors.secondary,
+        accent: brandColors.accent
       },
       automotive: {
-        primary: '#607d8b',
-        secondary: '#455a64',
-        accent: '#ff5722'
+        primary: brandColors.primary,
+        secondary: brandColors.secondary,
+        accent: brandColors.accent
       },
       construction: {
-        primary: '#795548',
-        secondary: '#5d4037',
-        accent: '#ff9800'
+        primary: brandColors.primary,
+        secondary: brandColors.secondary,
+        accent: brandColors.accent
       },
       other: {
-        primary: '#34495e',
-        secondary: '#2c3e50',
-        accent: '#3498db'
+        primary: brandColors.primary,
+        secondary: brandColors.secondary,
+        accent: brandColors.accent
       }
     };
     

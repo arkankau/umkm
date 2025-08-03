@@ -3,7 +3,7 @@ import MarketingConsultantBot from "@/components/MarketingConsultantBot";
 import Navbar from "@/components/navbar";
 
 export const metadata: Metadata = {
-  title: "Marketing Consultant AI - OneStopUMKM",
+  title: "Marketing Consultant AI - Untuk Mu Karya Mu",
   description: "Get expert digital marketing advice for your small business. Our AI consultant helps with social media, SEO, content marketing, and more.",
   keywords: "digital marketing, social media strategy, SEO, content marketing, small business marketing, AI consultant",
 };
