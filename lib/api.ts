@@ -118,13 +118,13 @@ export async function getBusinessBySubdomain(subdomain: string): Promise<Busines
   return response.json();
 } 
 
-export async function generateImage(prompt: string): Promise<string> {
+export async function generateImage(prompt: string, businessData?: any): Promise<string | string[]> {
   const response = await fetch(`${API_BASE_URL}/generate-image`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify({ prompt, businessData }),
   });
 
   if (!response.ok) {
@@ -133,5 +133,11 @@ export async function generateImage(prompt: string): Promise<string> {
   }
 
   const data = await response.json();
+  
+  // Return images array if business images were generated, otherwise single image URL
+  if (data.images && Array.isArray(data.images)) {
+    return data.images;
+  }
+  
   return data.imageUrl || data.url || '';
 }

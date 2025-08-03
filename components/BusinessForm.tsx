@@ -69,7 +69,11 @@ export default function BusinessForm({ initialData, onSubmit, isEditing = false 
         },
         body: JSON.stringify({
           prompt: logoPrompt,
-          businessName: formData.businessName
+          businessName: formData.businessName,
+          businessType: formData.category,
+          description: formData.description,
+          style: 'modern and professional',
+          colors: ['#22c55e', '#ffffff', '#1f2937']
         }),
       });
 

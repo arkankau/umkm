@@ -268,31 +268,22 @@ export class EdgeOneAPI {
     }
   }
 
-  // Generate logo using a placeholder service (since EdgeOne doesn't have image generation)
+  // Note: Logo generation has been moved to Gemini Image Service
+  // This method is deprecated and will be removed in future versions
   async generateLogo(prompt: string, businessName: string): Promise<{ success: boolean; imageUrl?: string; error?: string }> {
+    console.warn('EdgeOne logo generation is deprecated. Please use Gemini Image Service instead.');
+    
     try {
-      console.log('Generating logo with prompt:', prompt);
+      // Import Gemini service dynamically to avoid circular dependencies
+      const { geminiImageService } = await import('./gemini-image-service');
       
-      // For now, we'll use a placeholder logo service
-      // In production, you can integrate with services like:
-      // - DALL-E API
-      // - Stable Diffusion API
-      // - Midjourney API
-      // - Or use a logo template service
+      const result = await geminiImageService.generateLogo({
+        businessName,
+        businessType: 'business',
+        description: prompt || `A professional business called ${businessName}`
+      });
       
-      // Generate a placeholder logo URL based on business name
-      const encodedName = encodeURIComponent(businessName);
-      const encodedPrompt = encodeURIComponent(prompt);
-      
-      // Using a placeholder service that generates logos based on text
-      const placeholderUrl = `https://ui-avatars.com/api/?name=${encodedName}&background=22c55e&color=ffffff&size=512&bold=true&font-size=0.4`;
-      
-      console.log('Logo placeholder generated:', placeholderUrl);
-      return {
-        success: true,
-        imageUrl: placeholderUrl
-      };
-
+      return result;
     } catch (error) {
       console.error('Logo generation error:', error);
       return {

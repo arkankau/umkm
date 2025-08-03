@@ -1,4 +1,4 @@
-import { createEdgeOneAPI } from '../../lib/edgeone-api';
+import { geminiImageService } from '../../lib/gemini-image-service';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -6,29 +6,37 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt, businessName } = req.body;
+    const { prompt, businessName, businessType, description, style, colors, additionalDetails } = req.body;
 
     // Validate required fields
-    if (!prompt || !businessName) {
+    if (!businessName) {
       return res.status(400).json({ 
         error: 'Missing required fields',
-        message: 'Both prompt and businessName are required'
+        message: 'businessName is required'
       });
     }
 
     console.log('Generating logo for:', businessName, 'with prompt:', prompt);
 
-    // Create EdgeOne API instance
-    const edgeOneAPI = createEdgeOneAPI();
+    // Create logo generation request
+    const logoRequest = {
+      businessName,
+      businessType: businessType || 'business',
+      description: description || prompt || `A professional ${businessType || 'business'} called ${businessName}`,
+      style,
+      colors,
+      additionalDetails
+    };
 
-    // Generate logo
-    const result = await edgeOneAPI.generateLogo(prompt, businessName);
+    // Generate logo using Gemini
+    const result = await geminiImageService.generateLogo(logoRequest);
 
     if (result.success) {
       res.status(200).json({
         success: true,
         imageUrl: result.imageUrl,
-        message: 'Logo generated successfully'
+        prompt: result.prompt,
+        message: 'Logo generated successfully using Gemini AI'
       });
     } else {
       res.status(500).json({
