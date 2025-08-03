@@ -409,10 +409,10 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
                 </p>
                 {!formData.logoUrl && (
                   <button
-                    onClick={() => router.push(`/${businessData.userId}/generate-logo`)}
+                    onClick={() => router.push(`/${businessData.userId}/${businessData.businessId}/generate-logo`)}
                     className="text-indigo-600 hover:text-indigo-800 text-sm font-medium mt-2"
                   >
-                    Generate Logo
+                    Generate Logo with AI
                   </button>
                 )}
               </div>

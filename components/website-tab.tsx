@@ -42,6 +42,7 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
 
   // Transform businessData to match BusinessForm interface
   const transformToBusinessFormData = (data: BusinessData) => ({
+    businessId: data.businessId,
     businessName: data.businessName,
     ownerName: data.ownerName,
     description: data.description,
@@ -52,6 +53,9 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
     address: data.address,
     whatsapp: data.whatsapp,
     instagram: data.instagram,
+    subdomain: data.businessName?.toLowerCase().replace(/\s+/g, '-') || data.businessId,
+    websiteUrl: data.websiteUrl,
+    websiteGenerated: data.websiteGenerated
   });
 
   const handleGenerateWebsite = async () => {

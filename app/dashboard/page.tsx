@@ -183,8 +183,8 @@ const Dashboard = () => {
             {businesses.map((business) => (
               <Card 
                 key={business.id}
-                name={business.businessName} 
-                url={business.websiteUrl || `www.untukmukaryamu.com/${business.subdomain || business.businessName.toLowerCase().replace(/\s+/g, '-')}`}
+                name={business.businessName || 'Unnamed Business'} 
+                url={business.websiteUrl || `www.untukmukaryamu.com/${business.subdomain || (business.businessName || 'business').toLowerCase().replace(/\s+/g, '-')}`}
                 preview='/image.png'
               />
             ))}

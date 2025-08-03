@@ -67,22 +67,66 @@ export default function Dashboard({ params }: DashboardProps) {
         }
         setUser(user);
 
-        // Load business data
-        if (businessId) {
-          const { data: business, error: businessError } = await supabaseClient
-            .from('businesses')
-            .select('*')
-            .eq('businessId', businessId)
-            .single();
+                  // Load business data
+          if (businessId) {
+            // Try to find by id first, then by business_id if not found
+            let { data: business, error: businessError } = await supabaseClient
+              .from('businesses')
+              .select('*')
+              .eq('id', businessId)
+              .single();
 
-          if (businessError || !business) {
-            setError('Business not found');
-            setLoading(false);
-            return;
+            // If not found by id, try by business_id
+            if (businessError || !business) {
+              console.log('Not found by id, trying business_id:', businessId);
+              const { data: businessByBusinessId, error: businessIdError } = await supabaseClient
+                .from('businesses')
+                .select('*')
+                .eq('business_id', businessId)
+                .single();
+              
+              if (!businessIdError && businessByBusinessId) {
+                business = businessByBusinessId;
+                businessError = null;
+              }
+            }
+
+            if (businessError || !business) {
+              setError('Business not found');
+              setLoading(false);
+              return;
+            }
+
+            // Transform the database data to match the frontend interface
+            const transformedBusiness = {
+              businessId: business.id, // Use the database id as businessId
+              businessName: business.business_name,
+              ownerName: business.owner_name,
+              description: business.description,
+              category: business.category,
+              products: business.products,
+              phone: business.phone,
+              email: business.email,
+              address: business.address,
+              whatsapp: business.whatsapp,
+              instagram: business.instagram,
+              logoUrl: business.logo_url,
+              userId: user.id,
+              createdAt: business.created_at,
+              websiteUrl: business.website_url,
+              websiteGenerated: !!business.website_url,
+              subdomain: business.subdomain
+            };
+
+            console.log('=== BUSINESS DATA DEBUG ===');
+            console.log('Original business from DB:', business);
+            console.log('Transformed business:', transformedBusiness);
+            console.log('businessId from URL:', businessId);
+            console.log('transformedBusiness.businessId:', transformedBusiness.businessId);
+            console.log('=== END BUSINESS DATA DEBUG ===');
+
+            setBusinessData(transformedBusiness);
           }
-
-          setBusinessData(business);
-        }
       } catch (err) {
         console.error('Error loading business:', err);
         setError('Failed to load business data');

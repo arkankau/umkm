@@ -34,6 +34,8 @@ export default function BusinessForm({ initialData, onSubmit, isEditing = false 
   const [logoPrompt, setLogoPrompt] = useState<string>('');
   const [isGeneratingLogo, setIsGeneratingLogo] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>('');
+  const [savedBusinessId, setSavedBusinessId] = useState<string | null>(null);
+  const [isSavingData, setIsSavingData] = useState(false);
 
   // Update form data when initialData changes
   useEffect(() => {
@@ -51,6 +53,43 @@ export default function BusinessForm({ initialData, onSubmit, isEditing = false 
       ...prev,
       [name]: value
     }));
+  };
+
+  const saveBusinessData = async () => {
+    if (!formData.businessName || !formData.ownerName || !formData.description || !formData.phone || !formData.address) {
+      alert('Please fill in all required fields first');
+      return;
+    }
+
+    setIsSavingData(true);
+    setError(null);
+
+    try {
+      // Save business data to database without deploying
+      const response = await fetch('/api/save-business-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          logoUrl: logoUrl || undefined
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save business data');
+      }
+
+      const result = await response.json();
+      setSavedBusinessId(result.businessId);
+      alert('Business data saved successfully! You can now preview and modify the website.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      alert(`Error saving business data: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setIsSavingData(false);
+    }
   };
 
   const generateLogo = async () => {
@@ -105,21 +144,37 @@ export default function BusinessForm({ initialData, onSubmit, isEditing = false 
     setSubmitResult(null);
 
     try {
-      // Add logo URL to form data if generated
-      const formDataWithLogo = {
-        ...formData,
-        logoUrl: logoUrl || undefined
-      };
-
       if (onSubmit) {
         // If onSubmit is provided, use it (for editing mode)
+        const formDataWithLogo = {
+          ...formData,
+          logoUrl: logoUrl || undefined
+        };
         await onSubmit(formDataWithLogo);
       } else {
-        // Otherwise, use the default submit behavior
-        const result = await submitBusiness(formDataWithLogo);
+        // Deploy the current HTML from database
+        if (!savedBusinessId) {
+          throw new Error('Please save business data first before deploying');
+        }
+
+        const response = await fetch('/api/deploy-website', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            businessId: savedBusinessId
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to deploy website');
+        }
+
+        const result = await response.json();
         setSubmitResult(result);
         
-        // Redirect to status page after successful submission
+        // Redirect to status page after successful deployment
         setTimeout(() => {
           router.push(`/status/${result.businessId}`);
         }, 2000);
@@ -363,8 +418,19 @@ export default function BusinessForm({ initialData, onSubmit, isEditing = false 
             disabled={isSubmitting}
             className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Mengirim...' : (isEditing ? 'Update Information' : 'Buat Website')}
+            {isSubmitting ? 'Deploying...' : (isEditing ? 'Update Information' : 'Deploy Website')}
           </button>
+          
+          {!isEditing && (
+            <button
+              type="button"
+              onClick={saveBusinessData}
+              disabled={isSavingData || !formData.businessName || !formData.ownerName || !formData.description || !formData.phone || !formData.address}
+              className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSavingData ? 'Saving...' : 'Save Data'}
+            </button>
+          )}
           
           {!isEditing && (
             <button
@@ -383,6 +449,7 @@ export default function BusinessForm({ initialData, onSubmit, isEditing = false 
         <WebsitePreview
           businessData={{
             ...formData,
+            businessId: savedBusinessId || undefined,
             logoUrl: logoUrl || undefined
           }}
           onClose={() => setShowPreview(false)}

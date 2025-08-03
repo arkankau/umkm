@@ -22,11 +22,30 @@ export class DeploymentService {
     // No initialization needed for API-based deployment
   }
 
-  async deployWebsite(businessData: BusinessData, domain: string): Promise<DeploymentResult> {
+  async deployWebsite(businessData: BusinessData, domain: string, customHtml?: string): Promise<DeploymentResult> {
     try {
-      // Generate complete HTML file
-      console.log('Generating website HTML...');
-      const htmlContent = generateCompleteHTML(businessData);
+      // Validate business data
+      if (!businessData || !businessData.businessName) {
+        console.error('Invalid business data:', businessData);
+        return {
+          success: false,
+          error: 'Invalid business data: businessName is required',
+          deploymentMethod: 'puppeteer',
+          status: 'error',
+          message: 'Invalid business data'
+        };
+      }
+
+      // Use custom HTML if provided, otherwise generate new HTML
+      let htmlContent: string;
+      
+      if (customHtml) {
+        console.log('Using custom HTML for deployment...');
+        htmlContent = customHtml;
+      } else {
+        console.log('Generating website HTML...');
+        htmlContent = generateCompleteHTML(businessData);
+      }
       
       // Deploy using puppeteer directly
       console.log('Deploying website using puppeteer...');

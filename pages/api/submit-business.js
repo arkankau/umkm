@@ -31,53 +31,93 @@ export default async function handler(req, res) {
       });
     }
 
-    // Generate initial subdomain for deployment with timestamp to avoid conflicts
-    const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
-    const cleanBusinessName = businessData.businessName.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 15);
-    const initialSubdomain = `${cleanBusinessName}${timestamp}`;
+    // Generate clean subdomain for deployment
+    const businessName = businessData.businessName || 'business';
+    const cleanBusinessName = businessName.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
+    const initialSubdomain = cleanBusinessName;
 
-    // First, save business data to Supabase
-    console.log('Saving business data to Supabase:', businessData.businessName);
+    let supabaseData;
     
-    const { data: supabaseData, error: supabaseError } = await supabaseClient
-      .from('businesses')
-      .insert([
-        {
-          business_name: businessData.businessName,
-          owner_name: businessData.ownerName,
-          description: businessData.description,
-          category: businessData.category,
-          products: businessData.products,
-          phone: businessData.phone,
-          email: businessData.email || null,
-          address: businessData.address,
-          whatsapp: businessData.whatsapp || null,
-          instagram: businessData.instagram || null,
-          logo_url: businessData.logoUrl || null,
-          subdomain: initialSubdomain,
-          status: 'processing',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ])
-      .select()
-      .single();
+    // Check if this is an existing business deployment
+    if (businessData.existingBusinessId) {
+      console.log('Deploying existing business:', businessData.existingBusinessId);
+      
+      // Get existing business data
+      const { data: existingBusiness, error: fetchError } = await supabaseClient
+        .from('businesses')
+        .select('*')
+        .eq('id', businessData.existingBusinessId)
+        .single();
 
-    if (supabaseError) {
-      console.error('Supabase insert error:', supabaseError);
-      return res.status(500).json({
-        success: false,
-        error: 'Database Error',
-        message: 'Failed to save business data to database',
-        details: supabaseError.message
-      });
+      if (fetchError || !existingBusiness) {
+        console.error('Existing business not found:', fetchError);
+        return res.status(404).json({
+          success: false,
+          error: 'Business Not Found',
+          message: 'Existing business not found in database'
+        });
+      }
+
+      supabaseData = existingBusiness;
+      console.log('Using existing business data:', supabaseData.id);
+    } else {
+      // First, save business data to Supabase
+      console.log('Saving business data to Supabase:', businessData.businessName);
+      
+      const { data: newBusiness, error: supabaseError } = await supabaseClient
+        .from('businesses')
+        .insert([
+          {
+            business_name: businessData.businessName,
+            owner_name: businessData.ownerName,
+            description: businessData.description,
+            category: businessData.category,
+            products: businessData.products,
+            phone: businessData.phone,
+            email: businessData.email || null,
+            address: businessData.address,
+            whatsapp: businessData.whatsapp || null,
+            instagram: businessData.instagram || null,
+            logo_url: businessData.logoUrl || null,
+            subdomain: initialSubdomain,
+            status: 'processing',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ])
+        .select()
+        .single();
+
+      if (supabaseError) {
+        console.error('Supabase insert error:', supabaseError);
+        return res.status(500).json({
+          success: false,
+          error: 'Database Error',
+          message: 'Failed to save business data to database',
+          details: supabaseError.message
+        });
+      }
+
+      supabaseData = newBusiness;
+      console.log('Business data saved to Supabase with ID:', supabaseData.id);
     }
-
-    console.log('Business data saved to Supabase with ID:', supabaseData.id);
 
     // Deploy website using EdgeOne (or demo mode)
     console.log('Starting deployment for:', businessData.businessName);
-    const result = await deploymentService.deployWebsite(businessData, initialSubdomain);
+    
+    // Check if custom HTML is provided
+    const customHtml = businessData.customHtml;
+    const forceCustomHtml = businessData.forceCustomHtml;
+    
+    if (customHtml && forceCustomHtml) {
+      console.log('Using custom HTML for deployment');
+    } else if (customHtml) {
+      console.log('Custom HTML provided but not forced, will use if available');
+    } else {
+      console.log('No custom HTML provided, generating fresh HTML');
+    }
+    
+    const result = await deploymentService.deployWebsite(businessData, initialSubdomain, customHtml);
 
     if (result.success) {
       // Extract the domain from the final URL to use as businessId

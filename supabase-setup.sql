@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS businesses (
     logo_url TEXT,
     subdomain VARCHAR(255),
     website_url TEXT,
+    website_html TEXT, -- Store the actual HTML content
     status VARCHAR(20) DEFAULT 'processing' CHECK (status IN ('processing', 'live', 'error')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

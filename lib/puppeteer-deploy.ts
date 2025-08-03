@@ -13,7 +13,7 @@ function getRandomUserAgent() {
 }
 
 
-async function deploy(htmlCode, domain) {
+async function deploy(htmlCode: string, domain: string) {
   let browser;
   let newDomain = domain;
 
@@ -102,40 +102,9 @@ async function deploy(htmlCode, domain) {
     console.log('Clicking deploy button...');
     await page.locator('button.PagesUploadCard_deploymentBtn__7ZMYf').click({ delay: 100 });
     
-    // Handle domain name conflicts with retry logic
-    let attempts = 0;
-    const maxAttempts = 5;
-    let deployed = false;
-
-    while (attempts < maxAttempts && !deployed) {
-      try {
-        // Wait a bit to see if there's a conflict
-        console.log('Checking for domain name conflicts...');
-        await (new Promise(resolve => setTimeout(resolve, 5000)));
-        
-        
-        const conflictExists = await page.locator('::-p-text(Project name already exists)');
-        
-        if (conflictExists) {
-          attempts++;
-          newDomain = `${domain}-${attempts}`;
-          console.log(`Domain conflict detected, trying: ${newDomain}`);
-          
-          await page.locator('input[placeholder="Enter your domain name"]').fill(newDomain, { delay: 50 });
-          await page.locator('button.PagesUploadCard_deploymentBtn__7ZMYf').click({ delay: 100 });
-          await (new Promise(resolve => setTimeout(resolve, 10000)));
-
-          await page.locator('::-p-text(Deploying...)') ? deployed = true : deployed = false;
-        } else {
-          // No conflict, deployment should proceed
-          console.log('No domain conflict, deployment proceeding...');
-          break;
-        }
-      } catch (error) {
-        console.log('No conflict detected, deployment proceeding...');
-        break;
-      }
-    }
+    // Simple deployment without conflict handling - let EdgeOne handle conflicts
+    console.log('Deploying with domain:', domain);
+    await (new Promise(resolve => setTimeout(resolve, 3000)));
     
     // Wait for deployment to complete (look for success indicators)
     console.log('Waiting for deployment to complete...');
@@ -160,7 +129,7 @@ async function deploy(htmlCode, domain) {
           break;
         }
         }
-      catch (error) {
+      catch (error: unknown) {
         // Continue checking other indicators
       }
     }
@@ -170,7 +139,7 @@ async function deploy(htmlCode, domain) {
     }
     
     // Get the final URL if possible
-    let finalUrl = `https://${newDomain}.edgeone.app`;
+    let finalUrl = `https://${domain}.edgeone.app`;
     console.log(`Deployment completed. Final URL: ${finalUrl}`);
     
     return {
@@ -180,11 +149,11 @@ async function deploy(htmlCode, domain) {
       deployedAt: Date.now()
     };
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Puppeteer deployment failed:', error);
     return {
       success: false,
-      error: error.message || 'Puppeteer deployment failed',
+      error: error instanceof Error ? error.message : 'Puppeteer deployment failed',
       domain: domain
     };
   } finally {
