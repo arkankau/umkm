@@ -26,7 +26,7 @@ interface Product {
   name: string;
   price: number;
   description: string;
-  imageUrl?: string;
+  image_url?: string;
 }
 
 interface BusinessTabProps {
@@ -44,7 +44,7 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
     name: '',
     price: 0,
     description: '',
-    imageUrl: ''
+    image_url: ''
   });
 
   const [formData, setFormData] = useState<BusinessData>(businessData);
@@ -58,7 +58,7 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
       const { data, error } = await supabaseClient
         .from('products')
         .select('*')
-        .eq('businessId', businessData.businessId);
+        .eq('business_id', businessData.businessId);
 
       if (error) throw error;
       setProducts(data || []);
@@ -86,13 +86,13 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
   const uploadImageToSupabase = async (file: File, filename: string) => {
     try {
       const { data, error } = await supabaseClient.storage
-        .from('businessimages')
+        .from('productimages')
         .upload(filename, file);
       
       if (error) throw error;
       
       const { data: { publicUrl } } = supabaseClient.storage
-        .from('businessimages')
+        .from('productimages')
         .getPublicUrl(filename);
       
       return publicUrl;
@@ -115,7 +115,7 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
 
       // Update business data
       const { error } = await supabaseClient
-        .from('businesses')
+        .from('businessesNeo')
         .update({
           businessName: formData.businessName,
           ownerName: formData.ownerName,
@@ -157,8 +157,8 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
           name: newProduct.name,
           price: newProduct.price,
           description: newProduct.description,
-          imageUrl: newProduct.imageUrl,
-          businessId: businessData.businessId
+          image_url: newProduct.image_url,
+          business_id: businessData.businessId
         })
         .select()
         .single();
@@ -166,7 +166,7 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
       if (error) throw error;
 
       setProducts([...products, data]);
-      setNewProduct({ name: '', price: 0, description: '', imageUrl: '' });
+      setNewProduct({ name: '', price: 0, description: '', image_url: '' });
       setShowProductForm(false);
     } catch (error) {
       console.error('Error adding product:', error);
@@ -409,7 +409,7 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
                 </p>
                 {!formData.logoUrl && (
                   <button
-                    onClick={() => router.push(`/${businessData.userId}/generate-logo`)}
+                    onClick={() => router.push(`/${businessData.userId}/${businessData.businessId}/generate-logo`)}
                     className="text-indigo-600 hover:text-indigo-800 text-sm font-medium mt-2"
                   >
                     Generate Logo
@@ -489,8 +489,8 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
             products.map((product) => (
               <div key={product.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-4">
-                  {product.imageUrl && (
-                    <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover rounded" />
+                  {product.image_url && (
+                    <img src={product.image_url} alt={product.name} className="w-12 h-12 object-cover rounded" />
                   )}
                   <div>
                     <h4 className="font-semibold text-sm">{product.name}</h4>
