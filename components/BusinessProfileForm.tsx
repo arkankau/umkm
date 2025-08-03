@@ -358,7 +358,7 @@ export default function BusinessProfileForm() {
               description: product.description,
               price: parseFloat(product.price),
               imageUrl: imageUrl,
-              website_id: "null",
+              website_id: 0,
               business_id: formData.businessId
             };
             

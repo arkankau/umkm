@@ -24,9 +24,9 @@ interface BusinessData {
 interface Product {
   id: string;
   name: string;
-  price: number;
+  price: string;
   description: string;
-  image_url?: string;
+  imageUrl?: string;
 }
 
 interface BusinessTabProps {
@@ -42,10 +42,11 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
   const [showProductForm, setShowProductForm] = useState(false);
   const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({
     name: '',
-    price: 0,
+    price: '0',
     description: '',
-    image_url: ''
+    imageUrl: ''
   });
+  const [productImageFile, setProductImageFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState<BusinessData>(businessData);
 
@@ -145,19 +146,29 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
   };
 
   const handleAddProduct = async () => {
-    if (!newProduct.name || newProduct.price <= 0) {
+    if (!newProduct.name || parseFloat(newProduct.price) <= 0) {
       alert('Please fill in product name and price');
       return;
     }
 
     try {
+      let imageUrl = newProduct.imageUrl;
+      
+      // Upload product image if selected
+      if (productImageFile) {
+        const filename = `${businessData.businessId}-product-${Date.now()}.${productImageFile.name.split('.').pop()}`;
+        imageUrl = await uploadImageToSupabase(productImageFile, filename);
+      }
+
       const { data, error } = await supabaseClient
         .from('products')
         .insert({
+          id: `${newProduct.name}-${businessData.businessId}`,
           name: newProduct.name,
           price: newProduct.price,
           description: newProduct.description,
-          image_url: newProduct.image_url,
+          imageUrl: imageUrl,
+          website_id: 1,
           business_id: businessData.businessId
         })
         .select()
@@ -166,7 +177,8 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
       if (error) throw error;
 
       setProducts([...products, data]);
-      setNewProduct({ name: '', price: 0, description: '', image_url: '' });
+      setNewProduct({ name: '', price: '0', description: '', imageUrl: '' });
+      setProductImageFile(null);
       setShowProductForm(false);
     } catch (error) {
       console.error('Error adding product:', error);
@@ -454,24 +466,38 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Price *
                 </label>
-                <input
-                  type="number"
-                  value={newProduct.price}
-                  onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
+                                 <input
+                   type="number"
+                   value={newProduct.price}
+                   onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                 />
               </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={newProduct.description}
-                  onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
+                             <div className="md:col-span-2">
+                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                   Description
+                 </label>
+                 <textarea
+                   value={newProduct.description}
+                   onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+                   rows={2}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                 />
+               </div>
+               <div className="md:col-span-2">
+                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                   Product Image
+                 </label>
+                 <input
+                   type="file"
+                   accept="image/*"
+                   onChange={(e) => setProductImageFile(e.target.files?.[0] || null)}
+                   className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                 />
+                 {productImageFile && (
+                   <p className="text-sm text-green-600 mt-1">Image selected: {productImageFile.name}</p>
+                 )}
+               </div>
             </div>
             <button
               onClick={handleAddProduct}
@@ -488,18 +514,18 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
           ) : (
             products.map((product) => (
               <div key={product.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-4">
-                  {product.image_url && (
-                    <img src={product.image_url} alt={product.name} className="w-12 h-12 object-cover rounded" />
-                  )}
-                  <div>
-                    <h4 className="font-semibold text-sm">{product.name}</h4>
-                    <p className="text-indigo-600 font-bold text-sm">Rp {product.price.toLocaleString()}</p>
-                    {product.description && (
-                      <p className="text-gray-600 text-xs mt-1">{product.description}</p>
-                    )}
-                  </div>
-                </div>
+                                 <div className="flex items-center gap-4">
+                   {product.imageUrl && (
+                     <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover rounded" />
+                   )}
+                   <div>
+                     <h4 className="font-semibold text-sm">{product.name}</h4>
+                     <p className="text-indigo-600 font-bold text-sm">Rp {parseFloat(product.price).toLocaleString()}</p>
+                     {product.description && (
+                       <p className="text-gray-600 text-xs mt-1">{product.description}</p>
+                     )}
+                   </div>
+                 </div>
                 {isEditing && (
                   <button
                     onClick={() => handleRemoveProduct(product.id)}

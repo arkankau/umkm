@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface BusinessData {
@@ -14,6 +14,8 @@ interface BusinessData {
   address: string;
   whatsapp: string;
   instagram: string;
+  businessId?: string;
+  userId?: string;
   menuProducts?: Array<{
     id: string;
     category: string;
@@ -55,6 +57,10 @@ export default function GuideOutput({ data }: GuideOutputProps) {
   const [lang, setLang] = useState<"en" | "id">("en");
   const [activeTab, setActiveTab] = useState<"business-info" | "products" | "website" | "analytics" | "guide">("business-info");
   const guideRef = useRef<HTMLDivElement>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [menu, setMenu] = useState<any>(null);
+  const [menuProducts, setMenuProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -73,9 +79,37 @@ export default function GuideOutput({ data }: GuideOutputProps) {
 
   const handleCreateMenu = () => {
     // Navigate to menu creation page with business data
-    const businessId = "demo-business-123"; // In real app, this would be the actual business ID
-    router.push(`/create-menu?businessId=${businessId}`);
+    if (data.businessId && data.userId) {
+      router.push(`/${data.userId}/${data.businessId}/create-menu`);
+    } else {
+      alert('Business ID not available');
+    }
   };
+
+  // Fetch products and menu data when component mounts or businessId changes
+  useEffect(() => {
+    const fetchProductsAndMenu = async () => {
+      if (!data.businessId) return;
+      
+      setLoadingProducts(true);
+      try {
+        const response = await fetch(`/api/get-menu?businessId=${data.businessId}`);
+        const result = await response.json();
+        
+        if (result.success) {
+          setProducts(result.products || []);
+          setMenu(result.menu);
+          setMenuProducts(result.menuProducts || []);
+        }
+      } catch (error) {
+        console.error('Error fetching products and menu:', error);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    fetchProductsAndMenu();
+  }, [data.businessId]);
 
   const handleDownload = () => {
     if (guideRef.current) {
@@ -544,28 +578,6 @@ export default function GuideOutput({ data }: GuideOutputProps) {
           </button>
 
           <button
-            onClick={() => setActiveTab("website")}
-            className={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
-              activeTab === "website"
-                ? "text-indigo-600 border-b-2 border-indigo-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {lang === "en" ? "Website" : "Website"}
-          </button>
-
-          <button
-            onClick={() => setActiveTab("analytics")}
-            className={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
-              activeTab === "analytics"
-                ? "text-indigo-600 border-b-2 border-indigo-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {lang === "en" ? "Analytics" : "Analitik"}
-          </button>
-
-          <button
             onClick={() => setActiveTab("guide")}
             className={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === "guide"
@@ -668,40 +680,121 @@ export default function GuideOutput({ data }: GuideOutputProps) {
 
       {activeTab === "products" && (
         <div className="space-y-6">
-          <div className="flex justify-between items-center mb-6">
+          <div className="mb-6">
             <h3 className="text-lg font-semibold">{lang === "en" ? "Products & Menu" : "Produk & Menu"}</h3>
-            <button
-              onClick={() => router.push('/create-menu')}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              {lang === "en" ? "Manage Menu" : "Kelola Menu"}
-            </button>
           </div>
 
-          {data.menuProducts && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {data.menuProducts.map((product) => (
-                <div key={product.id} className="bg-white p-4 rounded-lg border border-gray-200">
-                  {product.image_url && (
-                    <div className="mb-3">
-                      <img src={product.image_url} alt={product.name} className="w-full h-40 object-cover rounded-lg" />
+          {/* Menu Display */}
+          {loadingProducts ? (
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                <span className="ml-2 text-gray-600">Loading menu...</span>
+              </div>
+            </div>
+                    ) : menu && menuProducts.length > 0 ? (
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">
+                {lang === "en" ? "Menu Products" : "Produk Menu"}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {lang === "en" 
+                  ? `Menu: ${menu.name}`
+                  : `Menu: ${menu.name}`
+                }
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {menuProducts.map((product) => (
+                  <div key={product.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    {product.image_url && (
+                      <div className="mb-3">
+                        <img 
+                          src={product.image_url} 
+                          alt={product.name} 
+                          className="w-full h-40 object-cover rounded-lg shadow-sm" 
+                        />
+                      </div>
+                    )}
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h4 className="font-semibold text-gray-800">{product.name}</h4>
+                        <p className="text-sm text-gray-600">{product.category}</p>
+                      </div>
+                      <span className={`text-sm font-medium px-2 py-1 rounded ${product.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {product.is_available ? (lang === "en" ? "Available" : "Tersedia") : (lang === "en" ? "Sold Out" : "Habis")}
+                      </span>
                     </div>
-                  )}
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h4 className="font-semibold">{product.name}</h4>
-                      <p className="text-sm text-gray-600">{product.category}</p>
+                    <p className="text-sm text-gray-600 mb-2">{product.description}</p>
+                    <p className="font-bold text-indigo-600">Rp {product.price.toLocaleString()}</p>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        onClick={() => handleCopy(product.name)}
+                        className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 transition-colors"
+                      >
+                        {lang === "en" ? "Copy Name" : "Salin Nama"}
+                      </button>
+                      <button
+                        onClick={() => handleCopy(product.description)}
+                        className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200 transition-colors"
+                      >
+                        {lang === "en" ? "Copy Desc" : "Salin Desk"}
+                      </button>
+                      <button
+                        onClick={() => handleCopy(product.price.toString())}
+                        className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 transition-colors"
+                      >
+                        {lang === "en" ? "Copy Price" : "Salin Harga"}
+                      </button>
                     </div>
-                    <span className={`text-sm font-medium px-2 py-1 rounded ${product.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {product.is_available ? (lang === "en" ? "Available" : "Tersedia") : (lang === "en" ? "Sold Out" : "Habis")}
-                    </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-                  <p className="font-bold text-indigo-600">Rp {product.price.toLocaleString()}</p>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="text-center py-8">
+                <p className="text-gray-500 mb-4">
+                  {lang === "en" 
+                    ? "No menu has been created yet. Create a menu in the business dashboard to see products here."
+                    : "Belum ada menu yang dibuat. Buat menu di dashboard bisnis untuk melihat produk di sini."
+                  }
+                </p>
+                <button
+                  onClick={handleCreateMenu}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  {lang === "en" ? "Create Menu" : "Buat Menu"}
+                </button>
+              </div>
             </div>
           )}
+
+           
+
+           {/* Google Business Profile Tips */}
+           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 className="text-lg font-bold text-blue-800 mb-3">
+              {lang === "en" ? "Google Business Profile Tips" : "Tips Google Business Profile"}
+            </h3>
+            <div className="space-y-3 text-sm text-blue-700">
+              <div className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">📸</span>
+                <p>{lang === "en" ? "Upload high-quality product images to attract customers" : "Upload gambar produk berkualitas tinggi untuk menarik pelanggan"}</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">💰</span>
+                <p>{lang === "en" ? "Keep prices updated and accurate" : "Jaga harga tetap terbaru dan akurat"}</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">📝</span>
+                <p>{lang === "en" ? "Write clear, descriptive product descriptions" : "Tulis deskripsi produk yang jelas dan informatif"}</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">✅</span>
+                <p>{lang === "en" ? "Mark products as available/unavailable to manage inventory" : "Tandai produk tersedia/tidak tersedia untuk mengelola inventori"}</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

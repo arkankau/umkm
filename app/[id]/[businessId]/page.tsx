@@ -306,33 +306,7 @@ function GuideTab({ businessData }: { businessData: BusinessData }) {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Google Business Profile Setup Guide</h3>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setLang('en')}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-              lang === 'en' 
-                ? 'bg-indigo-600 text-white' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            EN
-          </button>
-          <button
-            onClick={() => setLang('id')}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-              lang === 'id' 
-                ? 'bg-indigo-600 text-white' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            ID
-          </button>
-        </div>
-      </div>
       <GuideOutput data={guideData} />
-    </div>
+      
   );
 }

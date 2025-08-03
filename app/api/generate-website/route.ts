@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
         .update({
           websiteUrl: result.url,
           websiteGenerated: true,
-          deployed_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .eq('businessId', businessData.businessId);

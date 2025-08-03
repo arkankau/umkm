@@ -37,7 +37,7 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
   const [showPreview, setShowPreview] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
   const [websiteStatus, setWebsiteStatus] = useState<'not-generated' | 'generating' | 'generated' | 'error'>(
-    businessData.websiteGenerated ? 'generated' : 'not-generated'
+    businessData.websiteUrl ? 'generated' : 'not-generated'
   );
   const [websiteData, setWebsiteData] = useState<BusinessData>(businessData);
   const [products, setProducts] = useState<any[]>([]);
@@ -356,6 +356,20 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
+            
+            <div className="flex justify-between items-center">
+
+            <button onClick = {() => setShowForm(true)}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Show Form
+            </button>
+            
+            <button onClick = {() => setShowPreview(true)}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Show Preview
+            </button>
 
             <button
               onClick={handleGenerateWebsite}
@@ -363,6 +377,7 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
             >
               Generate Website
             </button>
+            </div>
           </div>
         </div>
       )}

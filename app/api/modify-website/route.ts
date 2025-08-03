@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { aiWebsiteService } from '@/lib/ai-website-service';
+import { AIWebsiteService } from '@/lib/ai-website-service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Call AI service to modify the website
+    const aiWebsiteService = new AIWebsiteService();
     const result = await aiWebsiteService.modifyWebsite(currentHtml, modificationRequest, businessData);
 
     if (result.success) {
