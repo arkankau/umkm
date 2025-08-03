@@ -10,7 +10,13 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [checking, setChecking] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -70,6 +76,18 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <div className='min-h-screen flex flex-col font-inter items-center justify-center'>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-button mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (checking) {
     return (
@@ -138,7 +156,7 @@ const Login = () => {
             >
                 {loading ? 'Loading...' : 'Continue with Google'}
             </button>
-            <h3 className='text-xs font-mont text-center'>Don't have an account? <Link className='text-blue-400 hover:text-blue-600' href='/signup'>Sign up</Link></h3>
+            <h3 className='text-xs font-mont text-center'>Don&apos;t have an account? <Link className='text-blue-400 hover:text-blue-600' href='/signup'>Sign up</Link></h3>
         </div>
     </div>
   )

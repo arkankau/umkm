@@ -116,7 +116,7 @@ const Features = () => {
               Ready to Build Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">Dream Website?</span>
             </h2>
             <p className="font-inter text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join businesses who've already transformed their online presence with OneStopUMKM.
+              Join businesses who&apos;ve already transformed their online presence with OneStopUMKM.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

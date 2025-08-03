@@ -1,4 +1,4 @@
-// Next.js API route for get-business
+// Next.js API route for list-businesses
 import supabaseClient from '../../app/lib/supabase';
 
 export default async function handler(req, res) {
@@ -10,37 +10,31 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { businessId, subdomain } = req.query;
-
-    if (!businessId && !subdomain) {
-      return res.status(400).json({
-        error: 'Validation Error',
-        message: 'Business ID or subdomain is required'
-      });
-    }
+    const { limit = 50, offset = 0, status } = req.query;
 
     let query = supabaseClient
       .from('businesses')
-      .select('*');
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    if (businessId) {
-      query = query.eq('id', businessId);
-    } else if (subdomain) {
-      query = query.eq('subdomain', subdomain);
+    // Filter by status if provided
+    if (status) {
+      query = query.eq('status', status);
     }
 
-    const { data: business, error } = await query.single();
+    const { data: businesses, error, count } = await query;
 
     if (error) {
       console.error('Supabase query error:', error);
-      return res.status(404).json({
-        error: 'Not Found',
-        message: 'Business not found'
+      return res.status(500).json({
+        error: 'Database Error',
+        message: 'Failed to fetch businesses'
       });
     }
 
-    // Transform the data to match the expected API response format
-    const response = {
+    // Transform the data to match the expected format
+    const transformedBusinesses = businesses.map(business => ({
       id: business.id,
       businessName: business.business_name,
       ownerName: business.owner_name,
@@ -58,18 +52,21 @@ export default async function handler(req, res) {
       status: business.status,
       createdAt: new Date(business.created_at).getTime(),
       deployedAt: business.deployed_at ? new Date(business.deployed_at).getTime() : null,
-      googleMapsUrl: `https://maps.google.com/?q=${encodeURIComponent(business.address)}`,
-      whatsappUrl: business.whatsapp ? `https://wa.me/${business.whatsapp.replace(/\D/g, '')}` : null,
-      instagramUrl: business.instagram ? `https://instagram.com/${business.instagram.replace('@', '')}` : null
-    };
+      updatedAt: new Date(business.updated_at).getTime()
+    }));
 
-    return res.status(200).json(response);
+    return res.status(200).json({
+      businesses: transformedBusinesses,
+      total: count || businesses.length,
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
 
   } catch (error) {
-    console.error('Get business error:', error);
+    console.error('List businesses error:', error);
     return res.status(500).json({
       error: 'Internal Server Error',
-      message: 'Failed to get business info'
+      message: 'Failed to list businesses'
     });
   }
 } 

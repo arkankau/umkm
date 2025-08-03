@@ -1,5 +1,6 @@
 // Next.js API route for get-status
 import { deploymentService } from '../../lib/deployment-service';
+import supabaseClient from '../../app/lib/supabase';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -19,34 +20,44 @@ export default async function handler(req, res) {
       });
     }
 
-    // Get real deployment status from deployment service
-    const result = await deploymentService.getDeploymentStatus(businessId);
+    // Get business data from Supabase
+    const { data: business, error: supabaseError } = await supabaseClient
+      .from('businesses')
+      .select('*')
+      .eq('id', businessId)
+      .single();
 
-    if (!result) {
+    if (supabaseError) {
+      console.error('Supabase query error:', supabaseError);
       return res.status(404).json({
         error: 'Not Found',
         message: 'Business not found'
       });
     }
 
+    // Get real deployment status from deployment service
+    const deploymentResult = await deploymentService.getDeploymentStatus(business.subdomain || businessId);
+
     // Calculate progress based on status
-    const progress = result.status === 'live' ? '100%' : 
-                    result.status === 'processing' ? '75%' :
-                    result.status === 'pending' ? '25%' : '0%';
+    const status = deploymentResult?.status || business.status;
+    const progress = status === 'live' ? '100%' : 
+                    status === 'processing' ? '75%' :
+                    status === 'pending' ? '25%' : '0%';
 
     const response = {
-      businessId: businessId,
-      subdomain: result.domain || businessId,
-      domain: result.domain || businessId,
-      status: result.status || 'processing',
-      businessName: 'Your Business',
-      websiteUrl: result.status === 'live' ? result.url : undefined,
-      processingTime: result.status === 'live' ? 30 : Math.floor(Math.random() * 20) + 10,
-      createdAt: Date.now() - 86400000, // 1 day ago
-      deployedAt: result.deployedAt,
-      message: result.message || 'Processing your website deployment...',
+      businessId: business.id,
+      subdomain: business.subdomain || businessId,
+      domain: business.subdomain || businessId,
+      status: status,
+      businessName: business.business_name,
+      websiteUrl: status === 'live' ? (deploymentResult?.url || business.website_url) : undefined,
+      processingTime: status === 'live' ? 30 : Math.floor(Math.random() * 20) + 10,
+      createdAt: new Date(business.created_at).getTime(),
+      deployedAt: business.deployed_at ? new Date(business.deployed_at).getTime() : deploymentResult?.deployedAt,
+      message: deploymentResult?.message || 'Processing your website deployment...',
       progress,
-      error: result.error
+      error: deploymentResult?.error,
+      deploymentMethod: deploymentResult?.deploymentMethod
     };
 
     return res.status(200).json(response);

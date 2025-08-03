@@ -126,3 +126,12 @@ export async function generateImage(prompt: string): Promise<string> {
     },
     body: JSON.stringify({ prompt }),
   });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to generate image');
+  }
+
+  const data = await response.json();
+  return data.imageUrl || data.url || '';
+}

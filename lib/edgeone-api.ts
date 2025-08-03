@@ -251,24 +251,21 @@ export class EdgeOneAPI {
 
   // Generate unique subdomain
   async generateUniqueSubdomain(businessName: string): Promise<string> {
+    const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
     const baseSubdomain = businessName
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '')
-      .substring(0, 20);
+      .substring(0, 15);
     
-    let subdomain = baseSubdomain;
-    let counter = 1;
+    const subdomain = `${baseSubdomain}${timestamp}`;
     
-    while (!(await this.isSubdomainAvailable(subdomain))) {
-      subdomain = `${baseSubdomain}${counter}`;
-      counter++;
-      
-      if (counter > 100) {
-        throw new Error('Unable to generate unique subdomain');
-      }
+    // Check if subdomain is available, if not, add a random suffix
+    if (await this.isSubdomainAvailable(subdomain)) {
+      return subdomain;
+    } else {
+      const randomSuffix = Math.random().toString(36).substring(2, 6);
+      return `${baseSubdomain}${timestamp}${randomSuffix}`;
     }
-    
-    return subdomain;
   }
 }
 

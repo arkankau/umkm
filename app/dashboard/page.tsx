@@ -15,24 +15,39 @@ interface User {
   };
 }
 
-interface Website {
+interface Business {
   id: string;
-  name: string;
+  businessName: string;
+  ownerName: string;
   description: string;
   category: string;
+  products: string;
   phone: string;
-  email: string;
+  email?: string;
   address: string;
-  user_id: string;
-  created_at: string;
+  whatsapp?: string;
+  instagram?: string;
+  logoUrl?: string;
+  websiteUrl?: string;
+  subdomain?: string;
+  status: string;
+  createdAt: number;
+  deployedAt?: number;
+  updatedAt: number;
 }
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [websites, setWebsites] = useState<Website[]>([]);
-  const [websitesLoading, setWebsitesLoading] = useState(false);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [businessesLoading, setBusinessesLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -45,7 +60,7 @@ const Dashboard = () => {
         }
         
         setUser(user);
-        await fetchWebsites(user.id);
+        await fetchBusinesses();
       } catch (error) {
         console.error('Error checking auth state:', error);
         router.push('/login');
@@ -69,25 +84,29 @@ const Dashboard = () => {
     return () => subscription.unsubscribe();
   }, [router]);
 
-  const fetchWebsites = async (userId: string) => {
+  const fetchBusinesses = async () => {
     try {
-      setWebsitesLoading(true);
-      const { data: websitesData, error } = await supabaseClient
-        .from('websiteforms')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching websites:', error);
+      setBusinessesLoading(true);
+      const response = await fetch('/api/list-businesses');
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        // If it's a database error, show a helpful message
+        if (errorData.error === 'Database Error') {
+          console.log('Database table not set up yet. Please run the SQL script in Supabase dashboard.');
+        }
+        setBusinesses([]);
         return;
       }
-
-      setWebsites(websitesData || []);
+      
+      const data = await response.json();
+      setBusinesses(data.businesses || []);
     } catch (error) {
-      console.error('Error fetching websites:', error);
+      console.error('Error fetching businesses:', error);
+      setBusinesses([]);
     } finally {
-      setWebsitesLoading(false);
+      setBusinessesLoading(false);
     }
   };
 
@@ -99,6 +118,18 @@ const Dashboard = () => {
       console.error('Error signing out:', error);
     }
   };
+
+    // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <div className='min-h-screen flex flex-col items-center justify-center'>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-button mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -112,7 +143,7 @@ const Dashboard = () => {
   }
 
   if (!user) {
-    return null; 
+    return null;
   }
 
   const displayName = user.user_metadata?.full_name || user.user_metadata?.name || 'User';
@@ -140,20 +171,20 @@ const Dashboard = () => {
         </div>
       </div>
       <div className="dashboard max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 sm:px-8 lg:px-15 py-8 md:justify-items-start justify-items-center">
-        {websitesLoading ? (
+        {businessesLoading ? (
           <div className="col-span-full flex justify-center items-center py-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-button mx-auto mb-4"></div>
-              <p className="text-gray-600 font-inter">Loading your websites...</p>
+              <p className="text-gray-600 font-inter">Loading your businesses...</p>
             </div>
           </div>
         ) : (
           <>
-            {websites.map((website) => (
+            {businesses.map((business) => (
               <Card 
-                key={website.id}
-                name={website.name} 
-                url={`www.onestop.com/${website.name.toLowerCase().replace(/\s+/g, '-')}`}
+                key={business.id}
+                name={business.businessName} 
+                url={business.websiteUrl || `www.onestop.com/${business.subdomain || business.businessName.toLowerCase().replace(/\s+/g, '-')}`}
                 preview='/image.png'
               />
             ))}
@@ -164,18 +195,23 @@ const Dashboard = () => {
           </>
         )}
         
-        {!websitesLoading && websites.length === 0 && (
+        {!businessesLoading && businesses.length === 0 && (
           <div className="col-span-full text-center py-12">
             <div className="text-gray-400 mb-4">
               <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
             </div>
-            <h3 className="font-mont font-semibold text-lg text-gray-600 mb-2">No websites yet</h3>
-            <p className="text-gray-500 font-inter mb-6">Create your first website to get started!</p>
-            <Link href='/id/create-new' className="inline-block bg-button text-white px-6 py-3 rounded-lg font-mont font-semibold hover:bg-black transition-colors">
-              Create Your First Website
-            </Link>
+            <h3 className="font-mont font-semibold text-lg text-gray-600 mb-2">No businesses yet</h3>
+            <p className="text-gray-500 font-inter mb-6">Create your first business website to get started!</p>
+            <div className="space-y-3">
+              <Link href='/id/create-new' className="inline-block bg-button text-white px-6 py-3 rounded-lg font-mont font-semibold hover:bg-black transition-colors">
+                Create Your First Website
+              </Link>
+              <div className="text-xs text-gray-400 mt-4">
+                💡 If you&apos;re seeing database errors, make sure to run the SQL setup script in your Supabase dashboard
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -120,8 +120,8 @@ async function deploy(htmlCode, domain) {
         
         if (conflictExists) {
           attempts++;
-          const newDomain = ⁠ ${domain}${attempts} ⁠;
-          console.log(⁠ Domain conflict detected, trying: ${newDomain} ⁠);
+          const newDomain = `${domain}${attempts}`;
+          console.log(`Domain conflict detected, trying: ${newDomain}`);
           
           await page.locator('input[placeholder="Enter your domain name"]').fill(newDomain, { delay: 100 });
           await page.locator('button.PagesUploadCard_deploymentBtn__7ZMYf').click({ delay: 100 });
@@ -154,7 +154,7 @@ async function deploy(htmlCode, domain) {
         const element = await page.locator(indicator).first();
         if (await element.count() > 0) {
           deploymentSuccessful = true;
-          console.log(⁠ Deployment successful! Found indicator: ${indicator} ⁠);
+          console.log(`Deployment successful! Found indicator: ${indicator}`);
           break;
         }
       } catch (error) {
@@ -167,7 +167,7 @@ async function deploy(htmlCode, domain) {
     }
     
     // Get the final URL if possible
-    let finalUrl = ⁠ https://${domain}.edgeone.app ⁠;
+    let finalUrl = `https://${domain}.edgeone.app`;
     try {
       const urlElement = await page.locator('a[href*=".edgeone.app"]').first();
       if (await urlElement.count() > 0) {
@@ -180,7 +180,7 @@ async function deploy(htmlCode, domain) {
       console.log('Could not extract final URL, using default');
     }
     
-    console.log(⁠ Deployment completed. Final URL: ${finalUrl} ⁠);
+    console.log(`Deployment completed. Final URL: ${finalUrl}`);
     
     return {
       success: true,

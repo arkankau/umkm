@@ -25,7 +25,7 @@ export default function Home() {
         </h1>
         
         <p className="font-inter text-lg text-gray-600 mb-8 max-w-2xl leading-relaxed">
-          Join businesses who've transformed their online presence with our AI-powered website builder. No technical skills needed.
+          Join businesses who&apos;ve transformed their online presence with our AI-powered website builder. No technical skills needed.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
@@ -110,7 +110,7 @@ export default function Home() {
             Start Creating Your Website
           </Link>
           <p className="mt-4 text-gray-600">
-            You'll need to log in first to access the website creation form
+            You&apos;ll need to log in first to access the website creation form
           </p>
         </div>
       </div>

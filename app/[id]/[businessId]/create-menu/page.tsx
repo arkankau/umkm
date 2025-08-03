@@ -23,7 +23,7 @@ interface MenuTemplate {
 const CreateMenu = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<string>('')
   const [products, setProducts] = useState<Product[]>([])

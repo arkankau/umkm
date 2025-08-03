@@ -39,7 +39,7 @@ const Card = ({name, url, preview}: {name: string, url: string, preview: string}
             <div className='w-2 h-2 bg-green-400 rounded-full'></div>
             <span className='text-xs text-gray-500 font-inter'>Live</span>
           </div>
-          <div className='text-xs text-gray-400 font-inter'>Updated 2h ago</div>
+          <div className='text-xs text-gray-400 font-inter'>Recently updated</div>
         </div>
       </div>
     </div>

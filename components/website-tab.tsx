@@ -105,7 +105,18 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
     setShowForm(true);
   };
 
-  const handleFormSubmit = async (formData: any) => {
+  const handleFormSubmit = async (formData: {
+    businessName: string;
+    ownerName: string;
+    description: string;
+    category: string;
+    products: string;
+    phone: string;
+    email: string;
+    address: string;
+    whatsapp: string;
+    instagram: string;
+  }) => {
     try {
       // Update business data with new form data
       const { error } = await supabaseClient
@@ -215,7 +226,7 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-blue-800 mb-4">Generate Website</h3>
           <p className="text-blue-700 mb-4">
-            Create a professional website for your business using the information you've provided.
+            Create a professional website for your business using the information you&apos;ve provided.
           </p>
           <div className="space-y-4">
             <div className="bg-white p-4 rounded-lg border border-blue-200">

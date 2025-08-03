@@ -160,7 +160,7 @@ export default function Dashboard({ params }: DashboardProps) {
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Business Not Found</h1>
-            <p className="text-gray-600">The business you're looking for doesn't exist.</p>
+            <p className="text-gray-600">The business you&apos;re looking for doesn&apos;t exist.</p>
             {businessId && (
               <p className="text-sm text-gray-500 mt-2">Business ID: {businessId}</p>
             )}
@@ -284,7 +284,7 @@ function GuideTab({ businessData }: { businessData: BusinessData }) {
   const [lang, setLang] = useState<'en' | 'id'>('en');
 
   // Import GuideOutput component dynamically
-  const [GuideOutput, setGuideOutput] = useState<any>(null);
+  const [GuideOutput, setGuideOutput] = useState<React.ComponentType<{ data: Record<string, unknown> }> | null>(null);
 
   useEffect(() => {
     import('@/components/guideoutput').then((module) => {

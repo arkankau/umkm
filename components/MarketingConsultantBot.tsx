@@ -4,17 +4,24 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Lightbulb, TrendingUp, Target, MessageCircle, BarChart3, Zap } from 'lucide-react';
 
 const MarketingConsultantBot = () => {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      type: 'bot',
-      content: "👋 Hello! I'm your AI Digital Marketing Consultant. I help small businesses grow their online presence and reach more customers. What marketing challenge can I help you with today?",
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const messagesEndRef = useRef(null);
+
+  // Handle hydration and initialize messages
+  useEffect(() => {
+    setMounted(true);
+    setMessages([
+      {
+        id: 1,
+        type: 'bot',
+        content: "👋 Hello! I'm your AI Digital Marketing Consultant. I help small businesses grow their online presence and reach more customers. What marketing challenge can I help you with today?",
+        timestamp: new Date()
+      }
+    ]);
+  }, []);
 
   const quickActions = [
     { icon: TrendingUp, text: "Social Media Strategy", topic: "social-media" },
@@ -155,6 +162,18 @@ const MarketingConsultantBot = () => {
       return part;
     });
   };
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading marketing consultant...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
