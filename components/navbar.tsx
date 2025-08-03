@@ -29,6 +29,9 @@ const Navbar = () => {
           <Link className='mx-4 text-md hover:text-[#C6AFFF] transition-colors duration-300' href='/features'>
             Features
           </Link>
+          <Link className='mx-4 text-md hover:text-[#C6AFFF] transition-colors duration-300' href='/marketing-consultant'>
+            Marketing AI
+          </Link>
           <Link className='mx-4 text-md hover:text-[#C6AFFF] transition-colors duration-300' href='/team'>
             Team
           </Link>
@@ -68,6 +71,13 @@ const Navbar = () => {
               onClick={closeMenu}
             >
               Features
+            </Link>
+            <Link 
+              className='text-lg hover:text-[#C6AFFF] transition-colors duration-300 py-3 px-2 hover:bg-gray-50 rounded-lg' 
+              href='/marketing-consultant'
+              onClick={closeMenu}
+            >
+              Marketing AI
             </Link>
             <Link 
               className='text-lg hover:text-[#C6AFFF] transition-colors duration-300 py-3 px-2 hover:bg-gray-50 rounded-lg' 

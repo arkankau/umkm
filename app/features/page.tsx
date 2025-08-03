@@ -94,6 +94,16 @@ const Features = () => {
               </p>
             </div>
 
+            <div className="feature-card p-6">
+              <h3 className="font-mont font-semibold text-lg mb-2">AI Marketing Consultant</h3>
+              <p className="font-inter text-gray-600 text-sm leading-relaxed">
+                Get expert digital marketing advice from our AI consultant. Covers social media, SEO, content marketing, and more.
+              </p>
+              <Link href="/marketing-consultant" className="inline-block mt-3 text-blue-600 hover:text-blue-700 font-medium text-sm">
+                Try Marketing AI →
+              </Link>
+            </div>
+
 
           </div>
         </div>

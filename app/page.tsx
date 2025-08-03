@@ -39,6 +39,9 @@ export default function Home() {
           <Link href="/features" className="border-2 border-gray-300 font-mont rounded-2xl px-8 py-4 text-gray-700 text-lg font-semibold hover:border-purple-400 hover:text-purple-600 transition-colors duration-300">
             See How It Works
           </Link>
+          <Link href="/marketing-consultant" className="bg-gradient-to-r from-blue-600 to-purple-600 font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+            Get Marketing Advice
+          </Link>
         </div>
 
         <div className="flex items-center gap-8 text-sm text-gray-500 font-inter">
