@@ -46,7 +46,7 @@ export default function BusinessProfileForm() {
   });
   
   const [formData, setFormData] = useState<BusinessProfileData>({
-    businessId: '',
+    businessId: crypto.randomUUID(),
     businessName: '',
     ownerName: '',
     category: 'restaurant',
@@ -61,7 +61,6 @@ export default function BusinessProfileForm() {
     logoFile: null
   });
 
-  const [businessIdError, setBusinessIdError] = useState<string>('');
   const [logoPrompt, setLogoPrompt] = useState<string>('');
   const [isGeneratingLogo, setIsGeneratingLogo] = useState(false);
 
@@ -82,53 +81,6 @@ export default function BusinessProfileForm() {
     checkUser();
   }, [router]);
 
-  const validateBusinessId = async (businessId: string) => {
-    if (!businessId) {
-      setBusinessIdError('Business ID is required');
-      return false;
-    }
-
-    if (businessId.length < 3) {
-      setBusinessIdError('Business ID must be at least 3 characters');
-      return false;
-    }
-
-    if (!/^[a-zA-Z0-9-]+$/.test(businessId)) {
-      setBusinessIdError('Business ID can only contain letters, numbers, and hyphens');
-      return false;
-    }
-
-          try {
-        const { data, error } = await supabaseClient
-          .from('businessesNeo')
-          .select('businessId')
-          .eq('businessId', businessId)
-          .single();
-
-      if (data) {
-        setBusinessIdError('Business ID already exists');
-        return false;
-      }
-
-      setBusinessIdError('');
-      return true;
-    } catch (error) {
-      // If no record found, businessId is available
-      setBusinessIdError('');
-      return true;
-    }
-  };
-
-  const handleBusinessIdChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase().replace(/[^a-zA-Z0-9-]/g, '');
-    setFormData(prev => ({ ...prev, businessId: value }));
-    
-    if (value.length >= 3) {
-      await validateBusinessId(value);
-    } else {
-      setBusinessIdError('');
-    }
-  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -138,7 +90,7 @@ export default function BusinessProfileForm() {
     }
   };
 
-  const uploadImageToSupabase = async (file: File, filename: string) => {
+  const uploadImageToSupabase = async (file: File, filename: string, bucketName: string = 'productimages') => {
     try {
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
@@ -150,38 +102,42 @@ export default function BusinessProfileForm() {
         throw new Error('File must be an image');
       }
 
-      // Use the correct bucket name from your Supabase setup
-      const bucketName = 'productimages'; // this should match your Supabase bucket name
+      // Generate unique filename to avoid conflicts
+      const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
+      const fullPath = `${filename.replace(/\.[^/.]+$/, '')}-${uniqueFilename}`;
 
-      // First, check if we can access the bucket
-      const { data: bucket, error: bucketError } = await supabaseClient.storage
-        .getBucket(bucketName);
-      
-      if (bucketError) {
-        console.error('Error checking bucket:', bucketError);
-        throw new Error('Unable to access storage. Please ensure you have created a bucket named "productimages" in your Supabase storage.');
-      }
-
+      // Upload file to Supabase storage
       const { data, error } = await supabaseClient.storage
         .from(bucketName)
-        .upload(filename, file, {
+        .upload(fullPath, file, {
           cacheControl: '3600',
-          upsert: true // Allow overwriting files
+          upsert: false // Prevent overwriting with unique filenames
         });
       
       if (error) {
         console.error('Supabase upload error:', error);
+        // Check if it's a bucket not found error
+        if (error.message.includes('Bucket not found')) {
+          throw new Error(`Storage bucket '${bucketName}' not found. Please create the bucket in your Supabase dashboard.`);
+        }
+        // Check if it's a permission error
+        if (error.message.includes('permission') || error.message.includes('policy')) {
+          throw new Error('Permission denied. Please check your Supabase storage policies and ensure authenticated users can upload files.');
+        }
         throw new Error(`Failed to upload image: ${error.message}`);
       }
       
+      // Get public URL for the uploaded file
       const { data: { publicUrl } } = supabaseClient.storage
         .from(bucketName)
-        .getPublicUrl(filename);
+        .getPublicUrl(fullPath);
       
       if (!publicUrl) {
         throw new Error('Failed to get public URL for uploaded image');
       }
 
+      console.log('Successfully uploaded file:', fullPath);
       return publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -265,38 +221,20 @@ export default function BusinessProfileForm() {
       return;
     }
 
-    if (!formData.businessId || !formData.businessName || !formData.ownerName || !formData.phone) {
-      console.error('❌ Missing required fields:', {
-        businessId: !!formData.businessId,
-        businessName: !!formData.businessName,
-        ownerName: !!formData.ownerName,
-        phone: !!formData.phone
-      });
+    if (!formData.businessName || !formData.ownerName || !formData.phone) {
       alert('Please fill in all required fields');
       return;
     }
 
-    if (businessIdError) {
-      console.error('❌ Business ID error:', businessIdError);
-      alert('Please fix the Business ID error');
-      return;
-    }
-    
-    console.log('✅ Validation passed, starting submission...');
     setLoading(true);
     
     try {
       console.log('📤 Starting logo upload...');
       // Upload logo if exists
-      let logoUrl = '';
+      let logoUrl = formData.logo || ''; // Keep existing logo URL if it's from AI generation
       if (formData.logoFile) {
-        console.log('🖼️ Logo file found, uploading...');
-        const filename = `${formData.businessId}-logo-${Date.now()}.${formData.logoFile.name.split('.').pop()}`;
-        console.log('📁 Filename:', filename);
-        logoUrl = await uploadImageToSupabase(formData.logoFile, filename);
-        console.log('✅ Logo uploaded:', logoUrl);
-      } else {
-        console.log('ℹ️ No logo file to upload');
+        const filename = `logos/${formData.businessId}-logo`;
+        logoUrl = await uploadImageToSupabase(formData.logoFile, filename, 'productimages');
       }
 
       // Create business record
@@ -322,8 +260,23 @@ export default function BusinessProfileForm() {
       console.log('📝 Inserting business data:', businessDataToInsert);
       
       const { data: businessData, error: businessError } = await supabaseClient
-        .from('businessesNeo')
-        .insert(businessDataToInsert)
+        .from('businesses')
+        .insert({
+          business_id: formData.businessId,
+          business_name: formData.businessName,
+          owner_name: formData.ownerName,
+          description: formData.description,
+          category: formData.category,
+          products: formData.products,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          whatsapp: formData.whatsapp,
+          instagram: formData.instagram,
+          logo_url: logoUrl,
+          user_id: user.id,
+          created_at: new Date().toISOString()
+        })
         .select()
         .single();
 
@@ -344,18 +297,16 @@ export default function BusinessProfileForm() {
             let imageUrl = '';
             
             if (product.imageFile) {
-              console.log(`🖼️ Uploading product image for ${product.name}...`);
-              const filename = `${formData.businessId}-product-${Date.now()}-${product.imageFile.name}`;
-              imageUrl = await uploadImageToSupabase(product.imageFile, filename);
-              console.log(`✅ Product image uploaded:`, imageUrl);
+              const filename = `products/${formData.businessId}-${product.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
+              imageUrl = await uploadImageToSupabase(product.imageFile, filename, 'productimages');
             }
             
             const productData = {
               name: product.name,
               description: product.description,
               price: parseFloat(product.price),
-              image_url: imageUrl,
-              business_id: businessData.businessId
+              imageUrl: imageUrl,
+              business_id: formData.businessId
             };
             
             console.log(`📝 Product data for ${product.name}:`, productData);
@@ -406,17 +357,16 @@ export default function BusinessProfileForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Business ID *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Business ID</label>
               <input 
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none"
                 type="text" 
                 value={formData.businessId}
-                onChange={handleBusinessIdChange}
-                placeholder="e.g., warung-pak-budi"
+                readOnly
+                disabled
+                title="Business ID is automatically generated"
               />
-              {businessIdError && (
-                <p className="text-red-500 text-sm mt-1">{businessIdError}</p>
-              )}
+              <p className="text-gray-500 text-xs mt-1">Automatically generated unique identifier</p>
             </div>
 
             <div>
@@ -688,7 +638,7 @@ export default function BusinessProfileForm() {
       <div className="pt-6 border-t">
         <button 
           onClick={handleSubmit}
-          disabled={loading || !!businessIdError}
+          disabled={loading}
           className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Creating Business Profile...' : 'Create Business Profile'}
