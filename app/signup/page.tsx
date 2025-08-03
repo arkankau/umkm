@@ -116,7 +116,7 @@ const Signup = () => {
   return (
     <div className='min-h-screen flex flex-col font-inter'>
       <div className="px-15 pt-10 relative z-10">
-        <Link href='/'><h1 className='font-mont text-2xl font-bold '>OneStopUMKM</h1></Link>
+        <Link href='/'><h1 className='font-mont text-2xl font-bold'><span className="text-black">Untuk Mu</span> <span className="text-yellow-500">Karya Mu</span></h1></Link>
       </div>
       <div className="section flex flex-col -mt-3 items-center justify-center flex-1 gap-3 px-15">
             <h1 className='font-bold font-mont text-center text-2xl'>Create Your Account</h1>

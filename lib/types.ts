@@ -9,6 +9,7 @@ export interface BusinessData {
   email?: string;
   whatsapp?: string;
   instagram?: string;
+  logoUrl?: string;
 }
 
 export interface GeneratedWebsite {

@@ -101,62 +101,74 @@ const Login = () => {
   }
 
   return (
-    <div className='min-h-screen flex flex-col font-inter'>
+    <div className='min-h-screen flex flex-col font-inter bg-gray-50'>
       <div className="px-15 pt-10 relative z-10">
-        <Link href='/'><h1 className='font-mont text-2xl font-bold '>OneStopUMKM</h1></Link>
+        <Link href='/'><h1 className='font-mont text-2xl font-bold'><span className="text-black">Untuk Mu</span> <span className="text-yellow-500">Karya Mu</span></h1></Link>
       </div>
-      <div className="section flex flex-col -mt-3 items-center justify-center flex-1 gap-3 px-15">
-            <h1 className='font-bold font-mont text-center text-2xl'>Welcome Back</h1>
-            
-            {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded w-[19rem] text-sm">
-                {error}
-              </div>
-            )}
+      <div className="section flex flex-col -mt-3 items-center justify-center flex-1 gap-6 px-15">
+            <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+              <h1 className='font-bold font-mont text-center text-2xl mb-6'>Welcome Back</h1>
+              
+              {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+                  {error}
+                </div>
+              )}
 
-            <form onSubmit={handleLogin} className="flex flex-col gap-3">
-              <div className="flex flex-col gap-2 mx-auto">
-                  <h3 className='text-sm'>Email</h3>
-                  <input 
-                    className='bg-white border-[1.6] w-[19rem] h-[2rem] border-stroke rounded-sm outline-none px-2' 
-                    type="email" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-              </div>
-              <div className="flex flex-col gap-2 mx-auto">
-                  <h3 className='text-sm'>Password</h3>
-                  <input 
-                    className='bg-white border-[1.6] w-[19rem] h-[2rem] border-stroke rounded-sm outline-none px-2' 
-                    type="password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-              </div>
-              <div className="flex flex-col mt-4 mx-auto">
-                  <button 
-                    type="submit"
-                    disabled={loading}
-                    className='bg-button text-white flex items-center text-sm justify-center font-mont w-[19rem] text-center h-[2rem] rounded-sm hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-                  >
-                    {loading ? 'Signing in...' : 'Continue'}
-                  </button>
-              </div>
-            </form>
+              <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                    <h3 className='text-sm font-medium text-gray-700'>Email</h3>
+                    <input 
+                      className='bg-white border border-gray-300 w-full h-12 rounded-lg outline-none px-3 focus:ring-2 focus:ring-green-500 focus:border-transparent' 
+                      type="email" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      disabled={loading}
+                    />
+                </div>
+                <div className="flex flex-col gap-2">
+                    <h3 className='text-sm font-medium text-gray-700'>Password</h3>
+                    <input 
+                      className='bg-white border border-gray-300 w-full h-12 rounded-lg outline-none px-3 focus:ring-2 focus:ring-green-500 focus:border-transparent' 
+                      type="password" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      disabled={loading}
+                    />
+                </div>
+                <div className="flex flex-col mt-4">
+                    <button 
+                      type="submit"
+                      disabled={loading}
+                      className='bg-green-600 text-white flex items-center text-sm justify-center font-mont w-full text-center h-12 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium'
+                    >
+                      {loading ? 'Signing in...' : 'Continue'}
+                    </button>
+                </div>
+              </form>
 
-            <h3 className='text-center font-mont text-sm'>OR</h3>
-            <button 
-              onClick={handleGoogleLogin}
-              disabled={loading}
-              className='bg-[#A8CBFF] flex flex-col justify-center items-center font-mont text-sm mx-auto w-[19rem] h-[2rem] rounded-sm hover:bg-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-            >
-                {loading ? 'Loading...' : 'Continue with Google'}
-            </button>
-            <h3 className='text-xs font-mont text-center'>Don&apos;t have an account? <Link className='text-blue-400 hover:text-blue-600' href='/signup'>Sign up</Link></h3>
+              <div className="mt-6">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">OR</span>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className='bg-white border border-gray-300 flex flex-col justify-center items-center font-mont text-sm mx-auto w-full h-12 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-4'
+              >
+                  {loading ? 'Loading...' : 'Continue with Google'}
+              </button>
+              <h3 className='text-xs font-mont text-center mt-6 text-gray-600'>Don&apos;t have an account? <Link className='text-green-600 hover:text-green-700 font-medium' href='/signup'>Sign up</Link></h3>
+            </div>
         </div>
     </div>
   )

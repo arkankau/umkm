@@ -7,9 +7,9 @@ const Features = () => {
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-bg via-purple-50 to-blue-50 relative">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-[#C6AFFF] opacity-20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-40 right-10 w-96 h-96 bg-blue-300 opacity-15 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-300 opacity-10 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-green-400 opacity-20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-40 right-10 w-96 h-96 bg-yellow-300 opacity-15 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-300 opacity-10 rounded-full blur-3xl"></div>
       </div>
 
       <div className="relative z-20">
@@ -19,7 +19,7 @@ const Features = () => {
       {/* Hero Section */}
       <div className="hero px-4 md:px-15 flex flex-col items-center justify-center mt-8 text-center relative z-10">
         <h1 className="font-mont font-bold text-4xl md:text-5xl leading-tight mb-6 max-w-4xl">
-          Powerful Features for <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">Modern Businesses</span>
+          Powerful Features for <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-yellow-500">Modern Businesses</span>
         </h1>
         
         <p className="font-inter text-lg text-gray-600 mb-12 max-w-2xl leading-relaxed">
@@ -39,7 +39,7 @@ const Features = () => {
           <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
             <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
               <div className="text-center">
-                <div className="w-20 h-20 bg-button rounded-full flex items-center justify-center mx-auto mb-4 hover:bg-black transition-colors cursor-pointer">
+                <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4 hover:bg-green-700 transition-colors cursor-pointer">
                   <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z"/>
                   </svg>
@@ -116,7 +116,7 @@ const Features = () => {
               Ready to Build Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">Dream Website?</span>
             </h2>
             <p className="font-inter text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join businesses who&apos;ve already transformed their online presence with OneStopUMKM.
+              Join businesses who&apos;ve already transformed their online presence with Untuk Mu Karya Mu.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

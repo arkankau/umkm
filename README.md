@@ -1,4 +1,4 @@
-# UMKM Go Digital - One Stop UMKM Website Generator
+# UMKM Go Digital - Untuk Mu Karya Mu Website Generator
 
 A complete system for automatically generating professional websites for Indonesian UMKM (Micro, Small, and Medium Enterprises) businesses.
 

@@ -20,8 +20,9 @@ export default function Home() {
       <div className="hero px-15 flex flex-col items-center justify-center mt-3 text-center relative z-10">
         
         <h1 className="font-mont font-bold text-5xl leading-tight mb-6 max-w-4xl">
-          Create a <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">stunning website</span> <br />for your  
-          business in <br /> <span className="bg-[#C6AFFF] px-2 py-1 rounded-lg">3 minutes</span>
+          <span className="text-black">Untuk Mu</span> <span className="text-yellow-500">Karya Mu</span> <br />
+          <span className="text-green-600">Create stunning websites</span> <br />for your  
+          business in <br /> <span className="bg-yellow-500 text-black px-2 py-1 rounded-lg">3 minutes</span>
         </h1>
         
         <p className="font-inter text-lg text-gray-600 mb-8 max-w-2xl leading-relaxed">
@@ -31,25 +32,25 @@ export default function Home() {
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <button 
             onClick={() => document.getElementById('create-website')?.scrollIntoView({ behavior: 'smooth' })}
-            className="bg-button font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:bg-black transition-colors duration-300 shadow-lg hover:shadow-xl"
+            className="bg-green-600 font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:bg-green-700 transition-colors duration-300 shadow-lg hover:shadow-xl"
           >
             Start Building Free
           </button>
-          <Link href="/features" className="border-2 border-gray-300 font-mont rounded-2xl px-8 py-4 text-gray-700 text-lg font-semibold hover:border-purple-400 hover:text-purple-600 transition-colors duration-300">
+          <Link href="/features" className="border-2 border-yellow-500 font-mont rounded-2xl px-8 py-4 text-black text-lg font-semibold hover:bg-yellow-500 hover:text-black transition-colors duration-300">
             See How It Works
           </Link>
-          <Link href="/marketing-consultant" className="bg-gradient-to-r from-blue-600 to-purple-600 font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+          <Link href="/marketing-consultant" className="bg-gradient-to-r from-yellow-500 to-red-500 font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:from-yellow-600 hover:to-red-600 transition-all duration-300 shadow-lg hover:shadow-xl">
             Get Marketing Advice
           </Link>
         </div>
 
         <div className="flex items-center gap-8 text-sm text-gray-500 font-inter">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
             <span>24/7 support</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
             <span>No code</span>
           </div>
         </div>
@@ -105,7 +106,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center">
           <Link 
             href="/id/create-new" 
-            className="inline-block bg-button font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:bg-black transition-colors duration-300 shadow-lg hover:shadow-xl"
+            className="inline-block bg-green-600 font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:bg-green-700 transition-colors duration-300 shadow-lg hover:shadow-xl"
           >
             Start Creating Your Website
           </Link>

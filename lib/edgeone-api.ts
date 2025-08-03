@@ -267,6 +267,40 @@ export class EdgeOneAPI {
       return `${baseSubdomain}${timestamp}${randomSuffix}`;
     }
   }
+
+  // Generate logo using a placeholder service (since EdgeOne doesn't have image generation)
+  async generateLogo(prompt: string, businessName: string): Promise<{ success: boolean; imageUrl?: string; error?: string }> {
+    try {
+      console.log('Generating logo with prompt:', prompt);
+      
+      // For now, we'll use a placeholder logo service
+      // In production, you can integrate with services like:
+      // - DALL-E API
+      // - Stable Diffusion API
+      // - Midjourney API
+      // - Or use a logo template service
+      
+      // Generate a placeholder logo URL based on business name
+      const encodedName = encodeURIComponent(businessName);
+      const encodedPrompt = encodeURIComponent(prompt);
+      
+      // Using a placeholder service that generates logos based on text
+      const placeholderUrl = `https://ui-avatars.com/api/?name=${encodedName}&background=22c55e&color=ffffff&size=512&bold=true&font-size=0.4`;
+      
+      console.log('Logo placeholder generated:', placeholderUrl);
+      return {
+        success: true,
+        imageUrl: placeholderUrl
+      };
+
+    } catch (error) {
+      console.error('Logo generation error:', error);
+      return {
+        success: false,
+        error: `Logo generation error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
 }
 
 // Initialize EdgeOne API with environment variables

@@ -150,17 +150,17 @@ const Dashboard = () => {
   const userEmail = user.email || 'No email provided';
 
   return (
-    <div>
+    <div className="bg-gray-50 min-h-screen">
       <NavDash/>
       <div className="profile flex flex-col sm:flex-row gap-4 sm:gap-3 items-center sm:items-center justify-center sm:justify-start px-4 sm:px-8 lg:px-15 py-6">
-        <div className="image rounded-full bg-gradient-to-br from-purple-400 to-blue-500 w-20 h-20 flex items-center justify-center text-white font-mont font-bold text-xl">
+        <div className="image rounded-full bg-green-600 w-20 h-20 flex items-center justify-center text-white font-mont font-bold text-xl">
           {displayName.charAt(0).toUpperCase()}
         </div>
         <div className="information font-mont text-center sm:text-left">
             <h2 className='text-lg font-bold'>{displayName}</h2>
             <h3 className='text-sm mb-2 sm:mb-1 text-gray-600'>{userEmail}</h3>
             <div className="flex gap-2 flex-col sm:flex-row">
-              <Link className='px-4 py-1 bg-button text-white rounded-lg text-xs hover:bg-black transition-colors' href='/settings'>Settings</Link>
+              <Link className='px-4 py-1 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 transition-colors' href='/settings'>Settings</Link>
               <button 
                 onClick={handleSignOut}
                 className='px-4 py-1 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600 transition-colors'
@@ -174,7 +174,7 @@ const Dashboard = () => {
         {businessesLoading ? (
           <div className="col-span-full flex justify-center items-center py-12">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-button mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
               <p className="text-gray-600 font-inter">Loading your businesses...</p>
             </div>
           </div>
@@ -184,13 +184,22 @@ const Dashboard = () => {
               <Card 
                 key={business.id}
                 name={business.businessName} 
-                url={business.websiteUrl || `www.onestop.com/${business.subdomain || business.businessName.toLowerCase().replace(/\s+/g, '-')}`}
+                url={business.websiteUrl || `www.untukmukaryamu.com/${business.subdomain || business.businessName.toLowerCase().replace(/\s+/g, '-')}`}
                 preview='/image.png'
               />
             ))}
-            <Link href='/id/create-new' className='group cursor-pointer w-[15rem] h-[16rem] bg-white/60 backdrop-blur-sm rounded-2xl relative overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border-2 border-dashed border-gray-300/50 flex flex-col justify-center items-center hover:border-purple-300/50 hover:bg-purple-50/30'>
-              <div className='text-4xl text-gray-400 mb-3 group-hover:text-purple-400 transition-colors'>+</div>
-              <p className='text-gray-500 font-inter font-medium group-hover:text-purple-600 transition-colors'>Add New</p>
+            <Link href='/id/create-new' className='group cursor-pointer w-[15rem] h-[16rem] bg-white rounded-2xl relative overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border-2 border-dashed border-gray-300 flex flex-col justify-center items-center hover:border-green-300 hover:bg-green-50'>
+              <div className='text-4xl text-gray-400 mb-3 group-hover:text-green-600 transition-colors'>+</div>
+              <p className='text-gray-500 font-inter font-medium group-hover:text-green-700 transition-colors'>Add New</p>
+            </Link>
+            <Link href='/id/create-new?section=chatbot' className='group cursor-pointer w-[15rem] h-[16rem] bg-white rounded-2xl relative overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col justify-center items-center hover:border-yellow-300 hover:bg-yellow-50'>
+              <div className='w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-yellow-200 transition-colors'>
+                <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <p className='text-gray-700 font-inter font-medium group-hover:text-yellow-700 transition-colors'>Marketing AI</p>
+              <p className='text-gray-500 font-inter text-sm mt-1'>Get expert advice</p>
             </Link>
           </>
         )}
@@ -205,7 +214,7 @@ const Dashboard = () => {
             <h3 className="font-mont font-semibold text-lg text-gray-600 mb-2">No businesses yet</h3>
             <p className="text-gray-500 font-inter mb-6">Create your first business website to get started!</p>
             <div className="space-y-3">
-              <Link href='/id/create-new' className="inline-block bg-button text-white px-6 py-3 rounded-lg font-mont font-semibold hover:bg-black transition-colors">
+              <Link href='/id/create-new' className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-mont font-semibold hover:bg-green-700 transition-colors">
                 Create Your First Website
               </Link>
               <div className="text-xs text-gray-400 mt-4">

@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Lightbulb, TrendingUp, Target, MessageCircle, BarChart3, Zap } from 'lucide-react';
+import { Send, Bot, User, TrendingUp, Target, BarChart3, Zap } from 'lucide-react';
 
-const MarketingConsultantBot = () => {
+const EmbeddedMarketingBot = () => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -24,7 +24,7 @@ const MarketingConsultantBot = () => {
   }, []);
 
   const quickActions = [
-    { icon: TrendingUp, text: "Social Media Strategy", topic: "social-media" },
+    { icon: TrendingUp, text: "Social Media", topic: "social-media" },
     { icon: Target, text: "Content Marketing", topic: "content" },
     { icon: BarChart3, text: "SEO & Analytics", topic: "seo" },
     { icon: Zap, text: "Paid Advertising", topic: "ads" }
@@ -110,15 +110,15 @@ const MarketingConsultantBot = () => {
     setInputMessage('');
     setIsTyping(true);
 
-    // Simulate bot thinking time
+    // Simulate AI response
     setTimeout(() => {
       const advice = getMarketingAdvice(inputMessage);
       const botMessage = {
         id: messages.length + 2,
         type: 'bot',
         content: advice.content,
-        timestamp: new Date(),
-        suggestions: advice.suggestions
+        suggestions: advice.suggestions,
+        timestamp: new Date()
       };
 
       setMessages(prev => [...prev, botMessage]);
@@ -128,13 +128,13 @@ const MarketingConsultantBot = () => {
 
   const handleQuickAction = (topic) => {
     const topicMessages = {
-      'social-media': 'I need help with social media strategy',
-      'content': 'How do I create better content marketing?',
-      'seo': 'I want to improve my SEO and analytics',
-      'ads': 'Tell me about paid advertising options'
+      'social-media': 'I need help with social media marketing strategy',
+      'content': 'How can I improve my content marketing?',
+      'seo': 'What SEO strategies should I focus on?',
+      'ads': 'I want to start paid advertising'
     };
 
-    setInputMessage(topicMessages[topic] || '');
+    setInputMessage(topicMessages[topic] || 'Tell me about marketing');
   };
 
   const handleSuggestionClick = (suggestion) => {
@@ -153,7 +153,7 @@ const MarketingConsultantBot = () => {
     const parts = content.split(/(\*\*.*?\*\*|\*.*?\*|•.*)/g);
     return parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={index} className="text-blue-600">{part.slice(2, -2)}</strong>;
+        return <strong key={index} className="text-green-600">{part.slice(2, -2)}</strong>;
       } else if (part.startsWith('*') && part.endsWith('*')) {
         return <em key={index}>{part.slice(1, -1)}</em>;
       } else if (part.startsWith('•')) {
@@ -166,138 +166,110 @@ const MarketingConsultantBot = () => {
   // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading marketing consultant...</p>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto mb-2"></div>
+          <p className="text-gray-600 text-sm">Loading marketing consultant...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center space-x-3">
-            <div className="bg-green-600 p-2 rounded-lg">
-              <Bot className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Marketing Consultant AI</h1>
-              <p className="text-sm text-gray-600">Your digital marketing growth partner</p>
-            </div>
-          </div>
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      {/* Quick Actions */}
+      <div className="bg-gray-50 border-b p-4">
+        <p className="text-sm text-gray-600 mb-3">Quick Actions:</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {quickActions.map((action, index) => (
+            <button
+              key={index}
+              onClick={() => handleQuickAction(action.topic)}
+              className="flex items-center space-x-2 p-2 bg-white rounded-lg border hover:border-green-300 hover:bg-green-50 transition-all"
+            >
+              <action.icon className="w-3 h-3 text-green-600" />
+              <span className="text-xs font-medium text-gray-700">{action.text}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {/* Quick Actions */}
-          <div className="bg-gray-50 border-b p-4">
-            <p className="text-sm text-gray-600 mb-3">Quick Actions:</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {quickActions.map((action, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleQuickAction(action.topic)}
-                  className="flex items-center space-x-2 p-3 bg-white rounded-lg border hover:border-green-300 hover:bg-green-50 transition-all"
-                >
-                  <action.icon className="w-4 h-4 text-green-600" />
-                  <span className="text-xs font-medium text-gray-700">{action.text}</span>
-                </button>
-              ))}
+      {/* Chat Messages */}
+      <div className="h-80 overflow-y-auto p-4 space-y-3">
+        {messages.map((message) => (
+          <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-xs md:max-w-md lg:max-w-lg flex items-start space-x-2 ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+              <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${message.type === 'user' ? 'bg-green-600' : 'bg-yellow-500'}`}>
+                {message.type === 'user' ? (
+                  <User className="w-3 h-3 text-white" />
+                ) : (
+                  <Bot className="w-3 h-3 text-white" />
+                )}
+              </div>
+              <div className={`rounded-lg p-2 ${message.type === 'user' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
+                <div className="whitespace-pre-wrap text-xs leading-relaxed">
+                  {message.type === 'bot' ? formatMessage(message.content) : message.content}
+                </div>
+                {message.suggestions && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs text-gray-600 font-medium">Suggested questions:</p>
+                    {message.suggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="block w-full text-left text-xs bg-white hover:bg-green-50 border rounded p-1 text-gray-700 hover:text-green-600 transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-
-          {/* Chat Messages */}
-          <div className="h-96 overflow-y-auto p-4 space-y-4">
-            {messages.map((message) => (
-              <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl flex items-start space-x-2 ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${message.type === 'user' ? 'bg-green-600' : 'bg-yellow-500'}`}>
-                    {message.type === 'user' ? (
-                      <User className="w-4 h-4 text-white" />
-                    ) : (
-                      <Bot className="w-4 h-4 text-white" />
-                    )}
-                  </div>
-                  <div className={`rounded-lg p-3 ${message.type === 'user' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
-                    <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                      {message.type === 'bot' ? formatMessage(message.content) : message.content}
-                    </div>
-                    {message.suggestions && (
-                      <div className="mt-3 space-y-1">
-                        <p className="text-xs text-gray-600 font-medium">Suggested questions:</p>
-                        {message.suggestions.map((suggestion, index) => (
-                          <button
-                            key={index}
-                            onClick={() => handleSuggestionClick(suggestion)}
-                            className="block w-full text-left text-xs bg-white hover:bg-green-50 border rounded p-2 text-gray-700 hover:text-green-600 transition-colors"
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+        ))}
+        
+        {isTyping && (
+          <div className="flex justify-start">
+            <div className="flex items-start space-x-2">
+              <div className="flex-shrink-0 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+                <Bot className="w-3 h-3 text-white" />
+              </div>
+              <div className="bg-gray-100 rounded-lg p-2">
+                <div className="flex space-x-1">
+                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                 </div>
               </div>
-            ))}
-            
-            {isTyping && (
-              <div className="flex justify-start">
-                <div className="flex items-start space-x-2">
-                  <div className="flex-shrink-0 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="bg-gray-100 rounded-lg p-3">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input Area */}
-          <div className="border-t bg-gray-50 p-4">
-            <div className="flex space-x-2">
-              <textarea
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask me about social media, content marketing, SEO, advertising, or any marketing challenge..."
-                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-                rows="2"
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || isTyping}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white p-3 rounded-lg transition-colors flex items-center justify-center"
-              >
-                <Send className="w-5 h-5" />
-              </button>
             </div>
           </div>
-        </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
 
-        {/* Footer */}
-        <div className="text-center mt-6 text-sm text-gray-600">
-          <div className="flex items-center justify-center space-x-2 mb-2">
-            <Lightbulb className="w-4 h-4 text-yellow-500" />
-            <span>Pro Tip: Be specific about your business type and current challenges for personalized advice!</span>
-          </div>
-          <p>This AI consultant provides general marketing guidance. Consider consulting with a professional for complex strategies.</p>
+      {/* Input Area */}
+      <div className="border-t bg-gray-50 p-4">
+        <div className="flex space-x-2">
+          <textarea
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Ask me about social media, content marketing, SEO, advertising, or any marketing challenge..."
+            className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none text-sm"
+            rows="2"
+          />
+          <button
+            onClick={handleSendMessage}
+            disabled={!inputMessage.trim() || isTyping}
+            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white p-2 rounded-lg transition-colors flex items-center justify-center"
+          >
+            <Send className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
   );
 };
 
-export default MarketingConsultantBot; 
+export default EmbeddedMarketingBot; 
