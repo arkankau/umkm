@@ -54,7 +54,8 @@ export default async function handler(req, res) {
     console.log('=== SAVE API DEBUG END ===');
 
     // First, try to find the business record
-    let businessQuery = supabase.from('businesses').select('id, business_name, subdomain');
+    let businessQuery
+    businessQuery = supabase.from('businesses').select('id, business_name, subdomain') ? supabase.from('businesses').select('id, business_name, subdomain') : supabase.from('businessesNeo').select('id, businessName, businessId');
     
     // Strategy 1: Try businessId as id (if it's a valid UUID)
     if (businessId && businessId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {

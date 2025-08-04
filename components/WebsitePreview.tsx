@@ -168,7 +168,7 @@ export default function WebsitePreview({ businessData, onClose }: WebsitePreview
       console.log('Full businessData object:', businessData);
       console.log('businessData.businessId:', businessData.businessId);
       console.log('businessData.subdomain:', businessData.subdomain);
-      console.log('businessData.id:', (businessData as any).id);
+      console.log('businessData.id:', (businessData as any).id || businessData.businessId);
       console.log('=== SAVE DEBUG END ===');
       
       // Check if we have a businessId (meaning the business is saved to database)

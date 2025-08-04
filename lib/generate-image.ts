@@ -2,6 +2,7 @@ console.log('📦 Loading Google GenAI...');
 import { GoogleGenAI, Modality } from "@google/genai"
 import supabaseServer from '@/lib/supabase-server';
 
+
 console.log('🔑 Checking API key...');
 const api_key = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY;
 if (!api_key) {

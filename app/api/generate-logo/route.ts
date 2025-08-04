@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAndUploadLogo } from '@/lib/generate-image';
+import supabaseClient from '@/app/lib/supabase';
 
 export async function POST(request: NextRequest) {
   console.log('🚀 Logo generation API called');
@@ -53,6 +54,14 @@ export async function POST(request: NextRequest) {
     console.log('🎨 Starting logo generation...');
     const logoUrl = await generateAndUploadLogo(enhancedPrompt, logoBusinessId);
     console.log('✅ Logo generated successfully:', logoUrl);
+
+    let { data: business, error: businessError } = await supabaseClient
+      .from('businessesNeo')
+      .update({logoUrl})
+      .eq('businessId', businessId)
+      .single();
+
+    if (businessError) throw (businessError)
 
     return NextResponse.json({
       success: true,

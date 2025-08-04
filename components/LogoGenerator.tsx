@@ -72,6 +72,10 @@ Requirements:
         body: JSON.stringify({
           prompt: prompt.trim(),
           businessId,
+          businessName: businessData.businessName,
+          description: businessData.description,
+          businessType: businessData.category,
+          
         }),
       });
 
