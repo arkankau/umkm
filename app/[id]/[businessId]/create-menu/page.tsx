@@ -292,12 +292,14 @@ export default function CreateMenuPage() {
         }
         
         .container {
+            display: flex;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
         
         .header {
+            display : flex;
             text-align: center;
             background: rgba(255, 255, 255, 0.95);
             padding: 40px 20px;
@@ -334,16 +336,18 @@ export default function CreateMenuPage() {
         }
         
         .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            display: flex;
             gap: 30px;
+            flex-wrap: wrap;
         }
         
         .menu-section {
+            display: flex;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            flex-direction: column;
         }
         
         .menu-section h2 {
@@ -365,12 +369,8 @@ export default function CreateMenuPage() {
             transition: transform 0.2s ease;
         }
         
-        .menu-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
         .menu-item-image {
+            display: flex;
             width: 80px;
             height: 80px;
             border-radius: 10px;
@@ -379,10 +379,12 @@ export default function CreateMenuPage() {
         }
         
         .menu-item-content {
+            display: flex;
             flex: 1;
         }
         
         .menu-item-name {
+            display:flex;
             font-size: 1.2rem;
             font-weight: 600;
             color: #2d3748;
@@ -390,18 +392,21 @@ export default function CreateMenuPage() {
         }
         
         .menu-item-description {
+            display:flex;
             color: #718096;
             font-size: 0.9rem;
             margin-bottom: 8px;
         }
         
         .menu-item-price {
+            display:flex;
             font-size: 1.1rem;
             font-weight: 700;
             color: #667eea;
         }
         
         .footer {
+            display:flex;
             text-align: center;
             margin-top: 40px;
             padding: 20px;
@@ -417,6 +422,7 @@ export default function CreateMenuPage() {
         
         @media (max-width: 768px) {
             .container {
+                display:flex;
                 padding: 10px;
             }
             
@@ -424,11 +430,9 @@ export default function CreateMenuPage() {
                 font-size: 2rem;
             }
             
-            .menu-grid {
-                grid-template-columns: 1fr;
-            }
             
             .contact-info {
+                display:flex;
                 flex-direction: column;
                 gap: 15px;
             }

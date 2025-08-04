@@ -12,6 +12,7 @@ const API_CONFIG = {
   templateId: 'ep-LSFcccBDfIIn'
 } as const;
 
+
 export async function generateImageFromHTML(htmlCode: string): Promise<Blob | undefined> {
     console.log('🌐 Calling EdgeOne API...');
     try {
@@ -22,12 +23,13 @@ export async function generateImageFromHTML(htmlCode: string): Promise<Blob | un
         'OE-TEMPLATE-ID': API_CONFIG.templateId
       });
 
+      const cleanedHtmlCode = htmlCode.replaceAll(":hover", "").replaceAll(/\s+/g, ' ');
+      console.log(JSON.stringify({htmlCode: cleanedHtmlCode}));
+
       const response = await fetch('https://image.edgeone.app/', {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          htmlCode: htmlCode
-        })
+        body: JSON.stringify({ htmlCode: cleanedHtmlCode })
       });
     
       if (!response.ok) {
@@ -39,7 +41,7 @@ export async function generateImageFromHTML(htmlCode: string): Promise<Blob | un
     
       console.log('✅ EdgeOne API call successful');
       return await response.blob();
-      
+    
     } catch (error) {
       console.error('❌ Failed to generate image:', error);
       throw error;
