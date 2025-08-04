@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "cp -r .next out && cp -r public out && rm -rf out/cache",
+    "postbuild": "powershell -Command \"Copy-Item '.next' 'out' -Recurse -Force; Copy-Item 'public' 'out' -Recurse -Force; if (Test-Path 'out/cache') { Remove-Item 'out/cache' -Recurse -Force }\"",
     "start": "next start",
     "lint": "next lint",
     "test:html": "ts-node test-html-generation.ts",
