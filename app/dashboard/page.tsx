@@ -169,6 +169,7 @@ const Dashboard = () => {
         // Transform old table data to match Business interface
         const transformedBusinesses = (data.businesses || []).map((business: any) => ({
           id: business.id,
+          business_id: business.business_id || business.id, // Use business_id if available, fallback to id
           businessName: business.business_name, // Map old field name
           business_name: business.business_name,
           ownerName: business.owner_name, // Map old field name
@@ -322,6 +323,8 @@ const Dashboard = () => {
                     : `${business.ownerName} • ${business.category}`
                   }
                   preview='/image.png'
+                  userId={user?.id}
+                  businessId={business.business_id}
                 />
               </div>
             ))}
