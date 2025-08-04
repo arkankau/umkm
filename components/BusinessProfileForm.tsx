@@ -248,6 +248,7 @@ export default function BusinessProfileForm() {
 
       // Create business record
       const businessDataToInsert = {
+        id: formData.businessId,
         business_id: formData.businessId,
         user_id: user.id,
         business_name: formData.businessName,
