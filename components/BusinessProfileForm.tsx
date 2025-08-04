@@ -46,7 +46,7 @@ export default function BusinessProfileForm() {
   });
   
   const [formData, setFormData] = useState<BusinessProfileData>({
-    businessId: '',
+    businessId: crypto.randomUUID(),
     businessName: '',
     ownerName: '',
     category: 'restaurant',
@@ -63,8 +63,6 @@ export default function BusinessProfileForm() {
 
   const [logoPrompt, setLogoPrompt] = useState<string>('');
   const [isGeneratingLogo, setIsGeneratingLogo] = useState(false);
-  const [businessIdError, setBusinessIdError] = useState<string>('');
-  const [isCheckingBusinessId, setIsCheckingBusinessId] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -83,58 +81,6 @@ export default function BusinessProfileForm() {
     checkUser();
   }, [router]);
 
-  // Function to format businessId (trim, lowercase, replace spaces with dashes)
-  const formatBusinessId = (input: string): string => {
-    return input
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, '')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
-  };
-
-  // Function to check if businessId already exists
-  const checkBusinessIdExists = async (businessId: string): Promise<boolean> => {
-    if (!businessId) return false;
-    
-    try {
-      const { data, error } = await supabaseClient
-        .from('businessesNeo')
-        .select('businessId')
-        .eq('businessId', businessId)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
-        console.error('Error checking businessId:', error);
-        return false;
-      }
-      
-      return !!data; // Returns true if businessId exists
-    } catch (error) {
-      console.error('Error checking businessId:', error);
-      return false;
-    }
-  };
-
-  // Handle businessId input change
-  const handleBusinessIdChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value;
-    const formattedId = formatBusinessId(input);
-    
-    setFormData(prev => ({ ...prev, businessId: formattedId }));
-    setBusinessIdError('');
-    
-    if (formattedId && formattedId.length >= 3) {
-      setIsCheckingBusinessId(true);
-      const exists = await checkBusinessIdExists(formattedId);
-      setIsCheckingBusinessId(false);
-      
-      if (exists) {
-        setBusinessIdError('This Business ID is already taken. Please choose a different one.');
-      }
-    }
-  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -223,6 +169,7 @@ export default function BusinessProfileForm() {
     setIsGeneratingLogo(true);
     
     try {
+      console.log('🚀 Starting logo generation request...');
       const response = await fetch('/api/generate-logo', {
         method: 'POST',
         headers: {
@@ -233,18 +180,25 @@ export default function BusinessProfileForm() {
           businessName: formData.businessName,
           businessType: formData.category,
           description: formData.description,
+          businessId: formData.businessId,
           style: 'modern and professional',
           colors: ['#22c55e', '#ffffff', '#1f2937']
         }),
       });
 
+      console.log('📡 Got response, status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to generate logo');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('❌ Response not ok:', errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to generate logo`);
       }
 
       const result = await response.json();
+      console.log('📋 Response data:', result);
       
       if (result.success && result.imageUrl) {
+        console.log('✅ Logo generated successfully');
         // Set the generated logo
         setFormData(prev => ({
           ...prev,
@@ -254,7 +208,8 @@ export default function BusinessProfileForm() {
         setLogoPrompt(''); // Clear the prompt
         alert('Logo generated successfully!');
       } else {
-        throw new Error(result.error || 'Failed to generate logo');
+        console.error('❌ Logo generation failed:', result);
+        throw new Error(result.error || result.details || 'Failed to generate logo');
       }
     } catch (error) {
       console.error('Logo generation error:', error);
@@ -275,21 +230,8 @@ export default function BusinessProfileForm() {
       return;
     }
 
-    if (!formData.businessId || !formData.businessName || !formData.ownerName || !formData.phone) {
+    if (!formData.businessName || !formData.ownerName || !formData.phone) {
       alert('Please fill in all required fields');
-      return;
-    }
-
-    if (businessIdError) {
-      alert('Please fix the Business ID error');
-      return;
-    }
-
-    // Final check for businessId uniqueness
-    const exists = await checkBusinessIdExists(formData.businessId);
-    if (exists) {
-      setBusinessIdError('This Business ID is already taken. Please choose a different one.');
-      alert('This Business ID is already taken. Please choose a different one.');
       return;
     }
 
@@ -305,14 +247,11 @@ export default function BusinessProfileForm() {
       }
 
       // Create business record
-      // const businessUuid = generateBusinessId();
-      // console.log('🆔 Generated UUID:', businessUuid);
-      
       const businessDataToInsert = {
-        id: formData.businessId,
-        businessId: formData.businessId,
-        businessName: formData.businessName,
-        ownerName: formData.ownerName,
+        business_id: formData.businessId,
+        user_id: user.id,
+        business_name: formData.businessName,
+        owner_name: formData.ownerName,
         description: formData.description,
         category: formData.category,
         products: formData.products,
@@ -321,13 +260,14 @@ export default function BusinessProfileForm() {
         address: formData.address,
         whatsapp: formData.whatsapp,
         instagram: formData.instagram,
-        logoUrl: logoUrl
+        logo_url: logoUrl,
+        created_at: new Date().toISOString()
       };
       
       console.log('📝 Inserting business data:', businessDataToInsert);
       
       const { data: businessData, error: businessError } = await supabaseClient
-        .from('businessesNeo')
+        .from('businesses')
         .insert(businessDataToInsert)
         .select()
         .single();
@@ -410,30 +350,16 @@ export default function BusinessProfileForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Business ID *</label>
-              <div className="relative">
-                <input 
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    businessIdError ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  type="text" 
-                  value={formData.businessId}
-                  onChange={handleBusinessIdChange}
-                  placeholder="e.g., my-awesome-business"
-                />
-                {isCheckingBusinessId && (
-                  <div className="absolute right-3 top-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  </div>
-                )}
-              </div>
-              {businessIdError ? (
-                <p className="text-red-500 text-xs mt-1">{businessIdError}</p>
-              ) : (
-                <p className="text-gray-500 text-xs mt-1">
-                  Will be formatted as lowercase with dashes (e.g., "My Business" → "my-business")
-                </p>
-              )}
+              <label className="block text-sm font-medium text-gray-700 mb-1">Business ID</label>
+              <input 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none"
+                type="text" 
+                value={formData.businessId}
+                readOnly
+                disabled
+                title="Business ID is automatically generated"
+              />
+              <p className="text-gray-500 text-xs mt-1">Automatically generated unique identifier</p>
             </div>
 
             <div>

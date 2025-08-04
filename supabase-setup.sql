@@ -88,4 +88,8 @@ INSERT INTO businesses (
     '@tokomaju',
     'live'
 )
-ON CONFLICT DO NOTHING; 
+ON CONFLICT DO NOTHING;
+
+-- Migration: Add business_id column as UUID
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS business_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_businesses_business_id_unique ON businesses(business_id); 
