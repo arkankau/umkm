@@ -57,3 +57,7 @@ body{
 .copy-box code {
   color: #f3f4f6 !important;
 }
+
+.modal{
+  background-color: rgb(0,0,0,30%)
+}

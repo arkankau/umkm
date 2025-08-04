@@ -1,23 +1,10 @@
+"use client"
 import React from 'react'
 import Navbar from '@/components/navbar'
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   Zap, 
-  Smartphone, 
-  Headphones, 
-  Bot, 
-  Palette, 
-  Globe, 
-  Shield, 
-  BarChart3, 
-  Users, 
-  Rocket,
-  Sparkles,
-  Target,
-  MessageCircle,
-  TrendingUp,
-  Image,
-  Database,
   Cloud,
   Lock
 } from 'lucide-react'
@@ -25,76 +12,28 @@ import {
 const Features = () => {
   const features = [
     {
-      icon: Rocket,
       title: "AI-Powered Website Generation",
-      description: "Revolutionary 30-second website creation using advanced AI. Our system analyzes your business data and generates professional, fully-functional websites with custom templates, content, and branding - all without any technical knowledge required.",
-      highlight: "🏆 Hackathon Winner: Instant Website Creation"
+      description: "Revolutionary 30-second website creation using advanced AI. Our system analyzes your business data and generates professional, fully-functional websites with custom templates, content, and branding."
     },
     {
-      icon: Bot,
       title: "Advanced AI Marketing Consultant",
-      description: "World-class digital marketing AI powered by Gemini, GPT-4, and Claude. Get personalized marketing strategies, social media advice, SEO optimization, and content marketing plans tailored to your business type and budget.",
-      highlight: "🤖 Multi-AI Powered Intelligence"
+      description: "World-class digital marketing AI powered by Gemini, GPT-4, and Claude. Get personalized marketing strategies, social media advice, SEO optimization, and content marketing plans."
     },
     {
-      icon: Palette,
       title: "Smart Logo Generation",
-      description: "AI-driven logo creation with business-type color schemes and professional styling. Generates brand-appropriate logos instantly with advanced placeholder technology and automatic database integration.",
-      highlight: "🎨 Instant Brand Identity Creation"
+      description: "AI-driven logo creation with business-type color schemes and professional styling. Generates brand-appropriate logos instantly with advanced placeholder technology."
     },
     {
-      icon: Globe,
       title: "Global EdgeOne Deployment",
-      description: "Lightning-fast global deployment using Cloudflare EdgeOne Functions. Your website goes live instantly across 200+ countries with enterprise-grade performance, security, and reliability.",
-      highlight: "⚡ Sub-Second Global Deployment"
+      description: "Lightning-fast global deployment using Cloudflare EdgeOne Functions. Your website goes live instantly across 200+ countries with enterprise-grade performance and security."
     },
     {
-      icon: Database,
-      title: "Dual Database Architecture",
-      description: "Revolutionary multi-table database system supporting both legacy and modern business data structures. Seamless migration and compatibility ensuring no business data is ever lost.",
-      highlight: "🔄 Future-Proof Data Architecture"
-    },
-    {
-      icon: Smartphone,
       title: "Mobile-First Responsive Design",
-      description: "Every website automatically optimized for mobile, tablet, and desktop. Advanced responsive design with touch-friendly interfaces and lightning-fast loading speeds across all devices.",
-      highlight: "📱 Perfect Mobile Experience"
+      description: "Every website automatically optimized for mobile, tablet, and desktop. Advanced responsive design with touch-friendly interfaces and lightning-fast loading speeds."
     },
     {
-      icon: Target,
-      title: "Context-Aware AI Systems",
-      description: "Intelligent AI that understands your business context - type, experience level, budget, and target audience. Provides hyper-personalized recommendations and solutions.",
-      highlight: "🧠 Contextual Intelligence"
-    },
-    {
-      icon: MessageCircle,
-      title: "Embedded Marketing Bot",
-      description: "Seamlessly integrated AI marketing consultant within your business dashboard. Get instant marketing advice, strategy recommendations, and growth insights without leaving your workspace.",
-      highlight: "💬 In-Workflow AI Assistance"
-    },
-    {
-      icon: TrendingUp,
-      title: "Real-Time Analytics & Insights",
-      description: "Advanced analytics dashboard with real-time performance metrics, customer behavior tracking, and actionable insights to optimize your business growth and marketing strategies.",
-      highlight: "📊 Data-Driven Growth"
-    },
-    {
-      icon: Shield,
       title: "Enterprise Security & Privacy",
-      description: "Bank-level security with end-to-end encryption, GDPR compliance, and enterprise-grade data protection. Your business data is protected with military-grade security protocols.",
-      highlight: "🔒 Enterprise Security"
-    },
-    {
-      icon: Users,
-      title: "Multi-User Business Management",
-      description: "Advanced business management center with team collaboration, role-based access control, and comprehensive business profile management. Perfect for growing businesses and teams.",
-      highlight: "👥 Team Collaboration Ready"
-    },
-    {
-      icon: Cloud,
-      title: "Serverless Cloud Architecture",
-      description: "Cutting-edge serverless architecture using Next.js 15, Supabase, and EdgeOne Functions. Infinite scalability, zero maintenance, and 99.9% uptime guaranteed.",
-      highlight: "☁️ Infinite Scalability"
+      description: "Bank-level security with end-to-end encryption, GDPR compliance, and enterprise-grade data protection. Your business data is protected with military-grade security protocols."
     }
   ]
 
@@ -114,10 +53,7 @@ const Features = () => {
       {/* Hero Section */}
       <div className="hero px-4 md:px-15 flex flex-col items-center justify-center mt-8 text-center relative z-10">
         <div className="flex items-center justify-center mb-4">
-          <Sparkles className="w-8 h-8 text-yellow-500 mr-2" />
-          <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-            🏆 Hackathon-Winning Technology
-          </span>
+
         </div>
         <h1 className="font-mont font-bold text-4xl md:text-5xl leading-tight mb-6 max-w-4xl">
           Revolutionary Features for <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-yellow-500">Digital Transformation</span>
@@ -166,7 +102,7 @@ const Features = () => {
       <div className="features-section px-4 md:px-15 py-20 relative z-10">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-mont font-bold text-4xl mb-4">Cutting-Edge Technology Stack</h2>
+            <h2 className="font-mont font-bold text-4xl mb-4">Delivering you groundbreaking features</h2>
             <p className="font-inter text-xl text-gray-600 max-w-3xl mx-auto">
               Built with the latest AI, cloud, and web technologies to deliver unprecedented business value and user experience
             </p>
@@ -175,17 +111,7 @@ const Features = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <div key={index} className="feature-card bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/50 hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-xl flex items-center justify-center mr-4">
-                    <feature.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-mont font-bold text-xl text-gray-900">{feature.title}</h3>
-                    <div className="text-xs bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full font-semibold mt-1">
-                      {feature.highlight}
-                    </div>
-                  </div>
-                </div>
+                <h3 className="font-mont font-bold text-xl text-gray-900 mb-4">{feature.title}</h3>
                 <p className="font-inter text-gray-600 leading-relaxed">
                   {feature.description}
                 </p>
@@ -205,30 +131,89 @@ const Features = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
-            {[
-              { name: "Next.js 15", icon: "⚡", desc: "Latest React Framework" },
-              { name: "Gemini AI", icon: "🤖", desc: "Advanced AI Models" },
-              { name: "Supabase", icon: "🗄️", desc: "Real-time Database" },
-              { name: "EdgeOne", icon: "🌐", desc: "Global CDN" },
-              { name: "TypeScript", icon: "📝", desc: "Type Safety" },
-              { name: "Tailwind CSS", icon: "🎨", desc: "Modern Styling" }
-            ].map((tech, index) => (
-              <div key={index} className="text-center">
-                <div className="text-4xl mb-2">{tech.icon}</div>
-                <h3 className="font-mont font-semibold text-lg text-gray-900">{tech.name}</h3>
-                <p className="font-inter text-sm text-gray-600">{tech.desc}</p>
-              </div>
-            ))}
+          {/* Infinite Scroll Container */}
+          <div className="relative overflow-hidden">
+            {/* Left Fade */}
+            <div className="absolute left-0 top-0 w-20 h-full bg-gradient-to-r from-white/50 to-transparent z-10 pointer-events-none"></div>
+            
+            {/* Right Fade */}
+            <div className="absolute right-0 top-0 w-20 h-full bg-gradient-to-l from-white/50 to-transparent z-10 pointer-events-none"></div>
+            
+            {/* Scrolling Content */}
+            <div className="flex animate-scroll">
+              {/* First set of logos */}
+              {[
+                { name: "Next.js 15", icon: "/nextjs.svg", desc: "Latest React Framework" },
+                { name: "Gemini AI", icon: "/gemini.png", desc: "Image Generation" },
+                { name: "Supabase", icon: "/supabase-logo-icon.svg", desc: "Real-time Database" },
+                { name: "EdgeOne", icon: "/edgeone.png", desc: "Global CDN" },
+              ].map((tech, index) => (
+                <div key={index} className="flex-shrink-0 text-center mx-8 w-32">
+                  <div className="flex justify-center mb-4">
+                    <Image 
+                      src={tech.icon} 
+                      alt={tech.name}
+                      width={64}
+                      height={64}
+                      className="w-16 h-16 object-contain"
+                    />
+                  </div>
+                  <h3 className="font-mont font-semibold text-lg text-gray-900">{tech.name}</h3>
+                  <p className="font-inter text-sm text-gray-600">{tech.desc}</p>
+                </div>
+              ))}
+              
+              {/* Duplicate set for seamless loop */}
+              {[
+                { name: "Next.js 15", icon: "/nextjs.svg", desc: "Latest React Framework" },
+                { name: "Gemini AI", icon: "/gemini.png", desc: "AI Model" },
+                { name: "Supabase", icon: "/supabase-logo-icon.svg", desc: "Real-time Database" },
+                { name: "EdgeOne", icon: "/edgeone.png", desc: "Global CDN" },
+                { name: "Vercel", icon: "/vercel.svg", desc: "Deployment Platform" },
+                { name: "React", icon: "/next.svg", desc: "UI Framework" },
+              ].map((tech, index) => (
+                <div key={`duplicate-${index}`} className="flex-shrink-0 text-center mx-8 w-32">
+                  <div className="flex justify-center mb-4">
+                    <Image 
+                      src={tech.icon} 
+                      alt={tech.name}
+                      width={64}
+                      height={64}
+                      className="w-16 h-16 object-contain"
+                    />
+                  </div>
+                  <h3 className="font-mont font-semibold text-lg text-gray-900">{tech.name}</h3>
+                  <p className="font-inter text-sm text-gray-600">{tech.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+        
+        .animate-scroll {
+          animation: scroll 20s linear infinite;
+        }
+        
+        .animate-scroll:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
 
       <div className="cta-section px-4 md:px-15 py-20 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl border border-white/50">
             <div className="flex items-center justify-center mb-6">
-              <Rocket className="w-8 h-8 text-green-600 mr-2" />
               <h2 className="font-mont font-bold text-4xl">
                 Ready to <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">Revolutionize</span> Your Business?
               </h2>
