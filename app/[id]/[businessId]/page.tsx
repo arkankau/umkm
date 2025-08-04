@@ -153,6 +153,29 @@ export default function Dashboard({ params }: DashboardProps) {
     setBusinessData(updatedData);
   };
 
+  // Wrapper function to handle WebsiteTab's snake_case data format
+  const handleWebsiteUpdate = (updatedData: any) => {
+    const transformedData: BusinessData = {
+      businessId: updatedData.business_id || updatedData.businessId,
+      businessName: updatedData.business_name || updatedData.businessName,
+      ownerName: updatedData.owner_name || updatedData.ownerName,
+      description: updatedData.description,
+      category: updatedData.category,
+      products: updatedData.products,
+      phone: updatedData.phone,
+      email: updatedData.email,
+      address: updatedData.address,
+      whatsapp: updatedData.whatsapp,
+      instagram: updatedData.instagram,
+      logoUrl: updatedData.logo_url || updatedData.logoUrl,
+      userId: updatedData.user_id || updatedData.userId,
+      createdAt: updatedData.createdAt,
+      websiteUrl: updatedData.website_url || updatedData.websiteUrl,
+      websiteGenerated: updatedData.website_generated || updatedData.websiteGenerated
+    };
+    setBusinessData(transformedData);
+  };
+
   if (loading) {
     return (
       <div>
@@ -296,7 +319,7 @@ export default function Dashboard({ params }: DashboardProps) {
                     website_url: businessData.websiteUrl,
                     website_generated: businessData.websiteGenerated
                   }} 
-                  onUpdate={handleBusinessUpdate} 
+                  onUpdate={handleWebsiteUpdate} 
                 />
               )}
               {activeTab === 'guide' && (
