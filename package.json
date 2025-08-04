@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "cp -r .next out",
+    "postbuild": "cp -r .next out && rm -rf out/cache",
     "start": "next start",
     "lint": "next lint",
     "test:html": "ts-node test-html-generation.ts",
