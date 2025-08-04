@@ -35,7 +35,7 @@ interface BusinessInfo {
 
 export default function GenerateLogoPage() {
   const params = useParams();
-  const businessId = params.businessId as string;
+  const businessId = params?.businessId as string;
   const [businessData, setBusinessData] = useState<BusinessInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
