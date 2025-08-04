@@ -27,27 +27,27 @@ interface Menu {
   updated_at: string;
 }
 
-// interface BusinessData {
-//   id: string;
-//   status?:string;
-//   business_id: string;
-//   business_name: string;
-//   owner_name: string;
-//   description: string;
-//   category: 'restaurant' | 'retail' | 'service' | 'other';
-//   products: string;
-//   subdomain?: string;
-//   phone: string;
-//   email: string;
-//   address: string;
-//   whatsapp: string;
-//   instagram: string;
-//   logo_url: string;
-//   user_id: string;
-//   created_at: string;
-//   website_url?: string;
-//   deployed_at?: string;
-// }
+interface BusinessData {
+  id: string;
+  status?:string;
+  business_id: string;
+  business_name: string;
+  owner_name: string;
+  description: string;
+  category: 'restaurant' | 'retail' | 'service' | 'other';
+  products: string;
+  subdomain?: string;
+  phone: string;
+  email: string;
+  address: string;
+  whatsapp: string;
+  instagram: string;
+  logo_url: string;
+  user_id: string;
+  created_at: string;
+  website_url?: string;
+  deployed_at?: string;
+}
 
 export default function CreateMenuPage() {
   const params = useParams();
