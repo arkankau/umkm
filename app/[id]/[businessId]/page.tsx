@@ -277,7 +277,27 @@ export default function Dashboard({ params }: DashboardProps) {
                 <BusinessTab businessData={businessData} onUpdate={handleBusinessUpdate} />
               )}
               {activeTab === 'website' && (
-                <WebsiteTab businessData={businessData} onUpdate={handleBusinessUpdate} />
+                <WebsiteTab 
+                  businessData={{
+                    business_id: businessData.businessId,
+                    business_name: businessData.businessName,
+                    owner_name: businessData.ownerName,
+                    description: businessData.description,
+                    category: businessData.category,
+                    products: businessData.products,
+                    phone: businessData.phone,
+                    email: businessData.email,
+                    address: businessData.address,
+                    whatsapp: businessData.whatsapp,
+                    instagram: businessData.instagram,
+                    logo_url: businessData.logoUrl,
+                    user_id: businessData.userId,
+                    createdAt: businessData.createdAt,
+                    website_url: businessData.websiteUrl,
+                    website_generated: businessData.websiteGenerated
+                  }} 
+                  onUpdate={handleBusinessUpdate} 
+                />
               )}
               {activeTab === 'guide' && (
                 <GuideTab businessData={businessData} />
