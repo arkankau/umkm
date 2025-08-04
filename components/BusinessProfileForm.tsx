@@ -160,64 +160,64 @@ export default function BusinessProfileForm() {
     setProducts(products.filter(product => product.id !== id));
   };
 
-  const generateLogo = async () => {
-    if (!logoPrompt.trim() || !formData.businessName.trim()) {
-      alert('Please enter both a logo prompt and business name');
-      return;
-    }
+  // const generateLogo = async () => {
+  //   if (!logoPrompt.trim() || !formData.businessName.trim()) {
+  //     alert('Please enter both a logo prompt and business name');
+  //     return;
+  //   }
 
-    setIsGeneratingLogo(true);
+  //   setIsGeneratingLogo(true);
     
-    try {
-      console.log('🚀 Starting logo generation request...');
-      const response = await fetch('/api/generate-logo', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: logoPrompt,
-          businessName: formData.businessName,
-          businessType: formData.category,
-          description: formData.description,
-          businessId: formData.businessId,
-          style: 'modern and professional',
-          colors: ['#22c55e', '#ffffff', '#1f2937']
-        }),
-      });
+  //   try {
+  //     console.log('🚀 Starting logo generation request...');
+  //     const response = await fetch('/api/generate-logo', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         prompt: logoPrompt,
+  //         businessName: formData.businessName,
+  //         businessType: formData.category,
+  //         description: formData.description,
+  //         businessId: formData.businessId,
+  //         style: 'modern and professional',
+  //         colors: ['#22c55e', '#ffffff', '#1f2937']
+  //       }),
+  //     });
 
-      console.log('📡 Got response, status:', response.status);
+  //     console.log('📡 Got response, status:', response.status);
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('❌ Response not ok:', errorData);
-        throw new Error(errorData.error || `HTTP ${response.status}: Failed to generate logo`);
-      }
+  //     if (!response.ok) {
+  //       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+  //       console.error('❌ Response not ok:', errorData);
+  //       throw new Error(errorData.error || `HTTP ${response.status}: Failed to generate logo`);
+  //     }
 
-      const result = await response.json();
-      console.log('📋 Response data:', result);
+  //     const result = await response.json();
+  //     console.log('📋 Response data:', result);
       
-      if (result.success && result.imageUrl) {
-        console.log('✅ Logo generated successfully');
-        // Set the generated logo
-        setFormData(prev => ({
-          ...prev,
-          logo: result.imageUrl,
-          logoFile: null // Clear any uploaded file since we're using generated logo
-        }));
-        setLogoPrompt(''); // Clear the prompt
-        alert('Logo generated successfully!');
-      } else {
-        console.error('❌ Logo generation failed:', result);
-        throw new Error(result.error || result.details || 'Failed to generate logo');
-      }
-    } catch (error) {
-      console.error('Logo generation error:', error);
-      alert(`Error generating logo: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsGeneratingLogo(false);
-    }
-  };
+  //     if (result.success && result.imageUrl) {
+  //       console.log('✅ Logo generated successfully');
+  //       // Set the generated logo
+  //       setFormData(prev => ({
+  //         ...prev,
+  //         logo: result.imageUrl,
+  //         logoFile: null // Clear any uploaded file since we're using generated logo
+  //       }));
+  //       setLogoPrompt(''); // Clear the prompt
+  //       alert('Logo generated successfully!');
+  //     } else {
+  //       console.error('❌ Logo generation failed:', result);
+  //       throw new Error(result.error || result.details || 'Failed to generate logo');
+  //     }
+  //   } catch (error) {
+  //     console.error('Logo generation error:', error);
+  //     alert(`Error generating logo: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  //   } finally {
+  //     setIsGeneratingLogo(false);
+  //   }
+  // };
 
   const handleSubmit = async () => {
     console.log('🚀 Starting form submission...');
@@ -295,6 +295,7 @@ export default function BusinessProfileForm() {
             }
             
             const productData = {
+              id: `${product.name}-${formData.business_id}`,
               name: product.name,
               description: product.description,
               price: parseFloat(product.price),
@@ -493,7 +494,7 @@ export default function BusinessProfileForm() {
             </div>
 
             {/* AI Logo Generation */}
-            <div className="border-t pt-4">
+            {/* <div className="border-t pt-4">
               <label className="block text-xs font-medium text-gray-600 mb-2">
                 🎨 Generate Logo with AI
               </label>
@@ -520,15 +521,15 @@ export default function BusinessProfileForm() {
                   </p>
                 )}
               </div>
-            </div>
+            </div> */}
 
             {/* Logo Preview */}
-            {formData.logo && (
+            {/* {formData.logo && (
               <div className="border-t pt-4">
                 <label className="block text-xs font-medium text-gray-600 mb-2">Logo Preview</label>
                 <img src={formData.logo} alt="Logo Preview" className="w-32 h-32 object-contain rounded-lg border border-gray-300" />
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>
