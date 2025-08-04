@@ -1,3 +1,5 @@
+'use client';
+
 import Image from "next/image";
 import Navbar from "@/components/navbar";
 import Link from "next/link";
@@ -18,20 +20,26 @@ export default function Home() {
       <div className="hero px-15 flex flex-col items-center justify-center mt-3 text-center relative z-10">
         
         <h1 className="font-mont font-bold text-5xl leading-tight mb-6 max-w-4xl">
-          Create a <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">stunning website</span> <br />for your  
-          business in <br /> <span className="bg-[#C6AFFF] px-2 py-1 rounded-lg">3 minutes</span>
+          <span className="text-green-600">Create stunning websites</span> <br />for your  
+          business in <br /> <span className="bg-yellow-500 text-black px-2 py-1 rounded-lg">3 minutes</span>
         </h1>
         
         <p className="font-inter text-lg text-gray-600 mb-8 max-w-2xl leading-relaxed">
-          Join businesses who've transformed their online presence with our AI-powered website builder. No technical skills needed.
+          Join businesses who&apos;ve transformed their online presence with our AI-powered website builder. No technical skills needed.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
-          <Link href="/login" className="bg-button font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:bg-black transition-colors duration-300 shadow-lg hover:shadow-xl">
+          <button 
+            onClick={() => document.getElementById('create-website')?.scrollIntoView({ behavior: 'smooth' })}
+            className="bg-green-600 font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:bg-green-700 transition-colors duration-300 shadow-lg hover:shadow-xl"
+          >
             Start Building Free
-          </Link>
-          <Link href="/features" className="border-2 border-gray-300 font-mont rounded-2xl px-8 py-4 text-gray-700 text-lg font-semibold hover:border-purple-400 hover:text-purple-600 transition-colors duration-300">
+          </button>
+          <Link href="/features" className="border-2 border-yellow-500 font-mont rounded-2xl px-8 py-4 text-black text-lg font-semibold hover:bg-yellow-500 hover:text-black transition-colors duration-300">
             See How It Works
+          </Link>
+          <Link href="/marketing-consultant" className="bg-yellow-500 font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:bg-yellow-600  transition-all duration-300 shadow-lg hover:shadow-xl">
+            Get Marketing Advice
           </Link>
         </div>
 
@@ -82,6 +90,28 @@ export default function Home() {
               </p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Call to Action Section */}
+      <div id="create-website" className="px-15 py-20 relative z-10 bg-white">
+        <div className="text-center mb-16">
+          <h2 className="font-mont font-bold text-4xl mb-4">Create Your Website Now</h2>
+          <p className="font-inter text-xl text-gray-600 max-w-2xl mx-auto">
+            Get your AI-generated website in minutes with our professional form
+          </p>
+        </div>
+
+        <div className="max-w-4xl mx-auto text-center">
+          <Link 
+            href="/id/create-new" 
+            className="inline-block bg-green-600 font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:bg-green-700 transition-colors duration-300 shadow-lg hover:shadow-xl"
+          >
+            Start Creating Your Website
+          </Link>
+          <p className="mt-4 text-gray-600">
+            You&apos;ll need to log in first to access the website creation form
+          </p>
         </div>
       </div>
 

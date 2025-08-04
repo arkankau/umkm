@@ -1,0 +1,50 @@
+{
+  "name": "umkm-go-digital-backend",
+  "version": "1.0.0",
+  "description": "UMKM Go Digital - EdgeOne Functions Backend for automated website generation",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "test": "node test-template-system.js",
+    "test:api": "node test-simple.js",
+    "test:local": "node test-local.js",
+    "test:puppeteer": "node test-puppeteer-deployment.js",
+    "test:full-deployment": "node test-full-deployment-flow.js",
+    "build": "echo 'No build step needed for EdgeOne Functions'",
+    "clean": "echo 'No cleanup needed'"
+  },
+  "keywords": [
+    "umkm",
+    "edgeone",
+    "functions",
+    "website-generation",
+    "indonesia",
+    "digital-transformation",
+    "template-system",
+    "color-themes"
+  ],
+  "author": "UMKM Go Digital Team",
+  "license": "MIT",
+  "dependencies": {
+    "@11ty/eleventy": "^2.0.1",
+    "google-auth-library": "^10.2.0",
+    "nunjucks": "^3.2.4",
+    "puppeteer": "^24.15.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.10.0",
+    "@types/nunjucks": "^3.2.4",
+    "jest": "^29.7.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.3.0",
+    "wrangler": "^4.27.0"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

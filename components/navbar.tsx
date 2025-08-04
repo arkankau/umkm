@@ -17,25 +17,28 @@ const Navbar = () => {
     <div className='py-10 px-4 md:px-15 font-mont relative'>
       {/* Desktop & Mobile Header */}
       <div className='flex items-center justify-between'>
-        <Link className='text-xl font-bold hover:text-[#C6AFFF] transition-colors duration-300' href=''>
-          OneStopUMKM
+        <Link className='text-xl font-bold hover:text-green-600 transition-colors duration-300' href=''>
+          <span className="text-black">Untuk Mu</span> <span className="text-yellow-500">Karya Mu</span>
         </Link>
         
         {/* Desktop Navigation */}
         <div className='hidden md:flex items-center gap-15 absolute left-1/2 transform -translate-x-1/2'>
-          <Link className='mx-4 font-normal text-md hover:text-[#C6AFFF] transition-colors duration-300' href='/'>
+          <Link className='mx-4 font-normal text-md hover:text-green-600 transition-colors duration-300' href='/'>
             Home
           </Link>
-          <Link className='mx-4 text-md hover:text-[#C6AFFF] transition-colors duration-300' href='/features'>
+          <Link className='mx-4 text-md hover:text-green-600 transition-colors duration-300' href='/features'>
             Features
           </Link>
-          <Link className='mx-4 text-md hover:text-[#C6AFFF] transition-colors duration-300' href='/team'>
+          <Link className='mx-4 text-md hover:text-green-600 transition-colors duration-300' href='/marketing-consultant'>
+            Marketing AI
+          </Link>
+          <Link className='mx-4 text-md hover:text-green-600 transition-colors duration-300' href='/team'>
             Team
           </Link>
         </div>
 
         {/* Desktop Login Button */}
-        <Link href='/login' className='hidden md:block px-7 bg-button text-white py-2 rounded-lg text-md hover:bg-opacity-80 hover:scale-105 transition-all duration-300'>
+        <Link href='/login' className='hidden md:block px-7 bg-green-600 text-white py-2 rounded-lg text-md hover:bg-green-700 hover:scale-105 transition-all duration-300'>
           Login
         </Link>
 
@@ -56,21 +59,28 @@ const Navbar = () => {
         <div className='md:hidden absolute top-full left-0 right-0 z-[9999] bg-white shadow-lg border-t border-gray-200 animate-fadeIn'>
           <div className='flex flex-col p-4 space-y-3'>
             <Link 
-              className='text-lg font-normal hover:text-[#C6AFFF] transition-colors duration-300 py-3 px-2 hover:bg-gray-50 rounded-lg' 
+              className='text-lg font-normal hover:text-green-600 transition-colors duration-300 py-3 px-2 hover:bg-gray-50 rounded-lg' 
               href='/'
               onClick={closeMenu}
             >
               Home
             </Link>
             <Link 
-              className='text-lg hover:text-[#C6AFFF] transition-colors duration-300 py-3 px-2 hover:bg-gray-50 rounded-lg' 
+              className='text-lg hover:text-green-600 transition-colors duration-300 py-3 px-2 hover:bg-gray-50 rounded-lg' 
               href='/features'
               onClick={closeMenu}
             >
               Features
             </Link>
             <Link 
-              className='text-lg hover:text-[#C6AFFF] transition-colors duration-300 py-3 px-2 hover:bg-gray-50 rounded-lg' 
+              className='text-lg hover:text-green-600 transition-colors duration-300 py-3 px-2 hover:bg-gray-50 rounded-lg' 
+              href='/marketing-consultant'
+              onClick={closeMenu}
+            >
+              Marketing AI
+            </Link>
+            <Link 
+              className='text-lg hover:text-green-600 transition-colors duration-300 py-3 px-2 hover:bg-gray-50 rounded-lg' 
               href='/team'
               onClick={closeMenu}
             >
@@ -79,7 +89,7 @@ const Navbar = () => {
             <div className='border-t border-gray-200 pt-3 mt-3'>
               <Link 
                 href='/login' 
-                className='block w-full px-6 bg-button text-white py-3 rounded-lg text-center hover:bg-opacity-80 transition-all duration-300'
+                className='block w-full px-6 bg-green-600 text-white py-3 rounded-lg text-center hover:bg-green-700 transition-all duration-300'
                 onClick={closeMenu}
               >
                 Login

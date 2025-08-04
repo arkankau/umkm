@@ -13,3 +13,51 @@
 body{
   background: var(--color-bg);
 }
+
+/* Copy button animations */
+.copy-button.copied {
+  background-color: #10b981 !important; /* Green color when copied */
+}
+
+.copy-button.copied .check-icon {
+  opacity: 1 !important;
+}
+
+.copy-button.copied span {
+  opacity: 0;
+}
+
+.copy-button {
+  position: relative;
+}
+
+.copy-button span {
+  transition: opacity 0.2s;
+}
+
+.copy-button .check-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Dark theme for copy boxes */
+.copy-box {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.copy-box:hover {
+  border-color: #4b5563 !important;
+  box-shadow: 0 0 0 1px rgba(75, 85, 99, 0.3);
+}
+
+.copy-box code {
+  color: #f3f4f6 !important;
+}
+
+.modal{
+  background-color: rgb(0,0,0,30%)
+}

@@ -15,24 +15,43 @@ interface User {
   };
 }
 
-interface Website {
+interface Business {
   id: string;
-  name: string;
+  businessName?: string;
+  business_name?: string;
+  business_id: string;
+  ownerName?: string;
+  owner_name?: string;
   description: string;
   category: string;
+  products: string;
   phone: string;
-  email: string;
+  email?: string;
   address: string;
-  user_id: string;
-  created_at: string;
+  whatsapp?: string;
+  instagram?: string;
+  logoUrl?: string;
+  websiteUrl?: string;
+  subdomain?: string;
+  status: string;
+  createdAt: number;
+  deployedAt?: number;
+  updatedAt: number;
 }
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [websites, setWebsites] = useState<Website[]>([]);
-  const [websitesLoading, setWebsitesLoading] = useState(false);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [businessesLoading, setBusinessesLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [viewMode, setViewMode] = useState<'websites' | 'businesses'>('websites');
   const router = useRouter();
+
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -45,7 +64,7 @@ const Dashboard = () => {
         }
         
         setUser(user);
-        await fetchWebsites(user.id);
+        await fetchBusinesses();
       } catch (error) {
         console.error('Error checking auth state:', error);
         router.push('/login');
@@ -69,25 +88,128 @@ const Dashboard = () => {
     return () => subscription.unsubscribe();
   }, [router]);
 
-  const fetchWebsites = async (userId: string) => {
+  // Refetch when viewMode changes
+  useEffect(() => {
+    if (user) {
+      fetchBusinesses();
+    }
+  }, [viewMode, user]);
+
+  const fetchBusinesses = async () => {
     try {
-      setWebsitesLoading(true);
-      const { data: websitesData, error } = await supabaseClient
-        .from('websiteforms')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+      setBusinessesLoading(true);
+      
+      if (viewMode === 'businesses') {
+        // Fetch from businesses table for the current user
+        const { data: businessesData, error } = await supabaseClient
+          .from('businesses')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error fetching businesses:', error);
+          setBusinesses([]);
+          return;
+        }
+        
+        // Transform to match Business interface
+        const transformedBusinesses = businessesData.map((business: any) => ({
+          id: business.id,
+          business_id: business.business_id,
+          businessName: business.business_name,
+          ownerName: business.owner_name,
+          description: business.description,
+          category: business.category,
+          products: business.products,
+          phone: business.phone,
+          email: business.email,
+          address: business.address,
+          whatsapp: business.whatsapp,
+          instagram: business.instagram,
+          logoUrl: business.logo_url,
+          websiteUrl: business.website_url,
+          subdomain: business.subdomain,
+          status: business.status || 'not-generated',
+          createdAt: new Date(business.created_at).getTime(),
+          deployedAt: business.deployed_at ? new Date(business.deployed_at).getTime() : undefined,
+          updatedAt: new Date(business.updated_at || business.created_at).getTime()
+        }));
+        
+        setBusinesses(transformedBusinesses);
+      } else {
+        // Get the current user's session to send auth token
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (!session?.access_token) {
+          console.error('No access token available');
+          setBusinesses([]);
+          return;
+        }
 
-      if (error) {
-        console.error('Error fetching websites:', error);
-        return;
+        // Fetch from original API for websites view with auth token
+        const response = await fetch('/api/list-businesses', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('API Error:', errorData);
+          if (errorData.error === 'Database Error') {
+            console.log('Database table not set up yet. Please run the SQL script in Supabase dashboard.');
+          }
+          setBusinesses([]);
+          return;
+        }
+        
+        const data = await response.json();
+        
+        // Transform old table data to match Business interface
+        const transformedBusinesses = (data.businesses || []).map((business: any) => ({
+          id: business.id,
+          business_id: business.business_id || business.id, // Use business_id if available, fallback to id
+          businessName: business.business_name, // Map old field name
+          business_name: business.business_name,
+          ownerName: business.owner_name, // Map old field name
+          owner_name: business.owner_name,
+          description: business.description || '',
+          category: business.category || 'General',
+          products: business.products || '',
+          phone: business.phone || '',
+          email: business.email,
+          address: business.address || '',
+          whatsapp: business.whatsapp,
+          instagram: business.instagram,
+          logoUrl: business.logo_url,
+          websiteUrl: business.website_url,
+          subdomain: business.subdomain,
+          status: business.status || 'not-generated',
+          createdAt: new Date(business.created_at).getTime(),
+          deployedAt: business.deployed_at ? new Date(business.deployed_at).getTime() : undefined,
+          updatedAt: new Date(business.updated_at || business.created_at).getTime()
+        }));
+        
+        setBusinesses(transformedBusinesses);
       }
-
-      setWebsites(websitesData || []);
     } catch (error) {
-      console.error('Error fetching websites:', error);
+      console.error('Error fetching businesses:', error);
+      setBusinesses([]);
     } finally {
-      setWebsitesLoading(false);
+      setBusinessesLoading(false);
+    }
+  };
+
+  const handleBusinessClick = (business: Business) => {
+    if (viewMode === 'businesses') {
+      // Route to business edit page
+      router.push(`/${user?.id}/${business.business_id}`);
+    } else {
+      // Route to website preview
+      if (business.websiteUrl) {
+        window.open(business.websiteUrl, '_blank');
+      }
     }
   };
 
@@ -99,6 +221,18 @@ const Dashboard = () => {
       console.error('Error signing out:', error);
     }
   };
+
+    // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <div className='min-h-screen flex flex-col items-center justify-center'>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-button mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -112,24 +246,23 @@ const Dashboard = () => {
   }
 
   if (!user) {
-    return null; 
+    return null;
   }
 
   const displayName = user.user_metadata?.full_name || user.user_metadata?.name || 'User';
   const userEmail = user.email || 'No email provided';
 
   return (
-    <div>
+    <div className="bg-gray-50 min-h-screen">
       <NavDash/>
       <div className="profile flex flex-col sm:flex-row gap-4 sm:gap-3 items-center sm:items-center justify-center sm:justify-start px-4 sm:px-8 lg:px-15 py-6">
-        <div className="image rounded-full bg-gradient-to-br from-purple-400 to-blue-500 w-20 h-20 flex items-center justify-center text-white font-mont font-bold text-xl">
+        <div className="image rounded-full bg-green-600 w-20 h-20 flex items-center justify-center text-white font-mont font-bold text-xl">
           {displayName.charAt(0).toUpperCase()}
         </div>
         <div className="information font-mont text-center sm:text-left">
             <h2 className='text-lg font-bold'>{displayName}</h2>
             <h3 className='text-sm mb-2 sm:mb-1 text-gray-600'>{userEmail}</h3>
             <div className="flex gap-2 flex-col sm:flex-row">
-              <Link className='px-4 py-1 bg-button text-white rounded-lg text-xs hover:bg-black transition-colors' href='/settings'>Settings</Link>
               <button 
                 onClick={handleSignOut}
                 className='px-4 py-1 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600 transition-colors'
@@ -139,43 +272,100 @@ const Dashboard = () => {
             </div>
         </div>
       </div>
+      {/* View Mode Toggle */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-15 py-4">
+        <div className="flex justify-center mb-6">
+          <div className="bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+            <button
+              onClick={() => setViewMode('websites')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'websites'
+                  ? 'bg-green-600 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Websites
+            </button>
+            <button
+              onClick={() => setViewMode('businesses')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'businesses'
+                  ? 'bg-green-600 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Businesses
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="dashboard max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 sm:px-8 lg:px-15 py-8 md:justify-items-start justify-items-center">
-        {websitesLoading ? (
+        {businessesLoading ? (
           <div className="col-span-full flex justify-center items-center py-12">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-button mx-auto mb-4"></div>
-              <p className="text-gray-600 font-inter">Loading your websites...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+              <p className="text-gray-600 font-inter">Loading your {viewMode}...</p>
             </div>
           </div>
         ) : (
           <>
-            {websites.map((website) => (
-              <Card 
-                key={website.id}
-                name={website.name} 
-                url={`www.onestop.com/${website.name.toLowerCase().replace(/\s+/g, '-')}`}
-                preview='/image.png'
-              />
+            {businesses.map((business) => (
+              <div
+                key={business.id}
+                onClick={() => handleBusinessClick(business)}
+                className="cursor-pointer"
+              >
+                <Card 
+                  name={business.businessName || business.business_name || 'Unnamed Business'} 
+                  url={viewMode === 'websites' 
+                    ? (business.websiteUrl || `www.untukmukaryamu.com/${business.subdomain || business.businessName?.toLowerCase().replace(/\s+/g, '-')}`)
+                    : `${business.ownerName} • ${business.category}`
+                  }
+                  preview='/image.png'
+                  userId={user?.id}
+                  businessId={business.business_id}
+                />
+              </div>
             ))}
-            <Link href='/id/create-new' className='group cursor-pointer w-[15rem] h-[16rem] bg-white/60 backdrop-blur-sm rounded-2xl relative overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border-2 border-dashed border-gray-300/50 flex flex-col justify-center items-center hover:border-purple-300/50 hover:bg-purple-50/30'>
-              <div className='text-4xl text-gray-400 mb-3 group-hover:text-purple-400 transition-colors'>+</div>
-              <p className='text-gray-500 font-inter font-medium group-hover:text-purple-600 transition-colors'>Add New</p>
+            <Link href='/id/create-new' className='group cursor-pointer w-[15rem] h-[16rem] bg-white rounded-2xl relative overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border-2 border-dashed border-gray-300 flex flex-col justify-center items-center hover:border-green-300 hover:bg-green-50'>
+              <div className='text-4xl text-gray-400 mb-3 group-hover:text-green-600 transition-colors'>+</div>
+              <p className='text-gray-500 font-inter font-medium group-hover:text-green-700 transition-colors'>Add New</p>
+            </Link>
+            <Link href='/id/create-new?section=chatbot' className='group cursor-pointer w-[15rem] h-[16rem] bg-white rounded-2xl relative overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col justify-center items-center hover:border-yellow-300 hover:bg-yellow-50'>
+              <div className='w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-yellow-200 transition-colors'>
+                <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <p className='text-gray-700 font-inter font-medium group-hover:text-yellow-700 transition-colors'>Marketing AI</p>
+              <p className='text-gray-500 font-inter text-sm mt-1'>Get expert advice</p>
             </Link>
           </>
         )}
         
-        {!websitesLoading && websites.length === 0 && (
+        {!businessesLoading && businesses.length === 0 && (
           <div className="col-span-full text-center py-12">
             <div className="text-gray-400 mb-4">
               <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
             </div>
-            <h3 className="font-mont font-semibold text-lg text-gray-600 mb-2">No websites yet</h3>
-            <p className="text-gray-500 font-inter mb-6">Create your first website to get started!</p>
-            <Link href='/id/create-new' className="inline-block bg-button text-white px-6 py-3 rounded-lg font-mont font-semibold hover:bg-black transition-colors">
-              Create Your First Website
-            </Link>
+            <h3 className="font-mont font-semibold text-lg text-gray-600 mb-2">No {viewMode} yet</h3>
+            <p className="text-gray-500 font-inter mb-6">
+              {viewMode === 'websites' 
+                ? 'Create your first business website to get started!'
+                : 'Create your first business profile to get started!'
+              }
+            </p>
+            <div className="space-y-3">
+              <Link href='/id/create-new' className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-mont font-semibold hover:bg-green-700 transition-colors">
+                {viewMode === 'websites' ? 'Create Your First Website' : 'Create Your First Business'}
+              </Link>
+              <div className="text-xs text-gray-400 mt-4">
+                💡 If you&apos;re seeing database errors, make sure to run the SQL setup script in your Supabase dashboard
+              </div>
+            </div>
           </div>
         )}
       </div>
