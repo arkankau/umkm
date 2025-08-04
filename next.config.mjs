@@ -13,7 +13,7 @@ const nextConfig = {
     config.cache = false;
     return config;
   },
-  output: 'export',
+  
 };
 
 export default nextConfig;
