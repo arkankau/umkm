@@ -471,7 +471,7 @@ export default function CreateMenuPage() {
         </div>
         
         <div class="footer">
-            <p>© 2024 ${businessData.business_name}. All rights reserved.</p>
+            <p>© 2024 ${businessData.businessName}. All rights reserved.</p>
         </div>
     </div>
 </body>
@@ -501,10 +501,7 @@ export default function CreateMenuPage() {
         body: html
       });
       console.log(response);
-      } catch (error) {
-      console.error("Error generating menu:", error);
-    }
-  };
+  };}
 
   if (loading) {
     return (
@@ -530,7 +527,7 @@ export default function CreateMenuPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Menu</h1>
-          <p className="text-gray-600">Organize your products into a beautiful menu for {businessData.business_name}</p>
+          <p className="text-gray-600">Organize your products into a beautiful menu for {businessData.businessName}</p>
         </div>
 
         {/* Menu Name Input */}
