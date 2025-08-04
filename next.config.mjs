@@ -8,7 +8,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Remove the static export settings - EdgeOne can handle serverless functions
+  // Disable webpack cache to prevent large files
+  webpack: (config) => {
+    config.cache = false;
+    return config;
+  },
 };
 
 export default nextConfig;
