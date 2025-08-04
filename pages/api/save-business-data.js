@@ -15,6 +15,23 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Get user from authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No authorization token provided' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    
+    // Verify the user token
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    
+    if (userError || !userData.user) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    const userId = userData.user.id;
+
     const {
       businessName,
       ownerName,
@@ -45,10 +62,11 @@ export default async function handler(req, res) {
     // Generate subdomain
     const subdomain = `${businessName.toLowerCase().replace(/\s+/g, '')}${Math.floor(Math.random() * 1000000)}`;
 
-    // Save to database
+    // Save to businesses database
     const { data, error } = await supabase
       .from('businesses')
       .insert({
+        business_id: businessId, // Add the custom business ID field
         business_name: businessName,
         owner_name: ownerName,
         description: description,
@@ -61,6 +79,7 @@ export default async function handler(req, res) {
         instagram: instagram || '',
         logo_url: logoUrl || '',
         subdomain: subdomain,
+        user_id: userId, // Add user_id for proper ownership
         status: 'processing', // Use valid status from the check constraint
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()

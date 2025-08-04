@@ -70,18 +70,18 @@ export default function Dashboard({ params }: DashboardProps) {
         // Load business data
         if (businessId) {
           let { data: business, error: businessError } = await supabaseClient
-            .from('businessesNeo')
+            .from('businesses')
             .select('*')
-            .eq('businessId', businessId)
+            .eq('business_id', businessId)
             .single();
 
             // If not found by id, try by business_id
             if (businessError || !business) {
               console.log('Not found by id, trying business_id:', businessId);
               const { data: businessByBusinessId, error: businessIdError } = await supabaseClient
-                .from('businessesNeo')
+                .from('businesses')
                 .select('*')
-                .eq('businessId', businessId)
+                .eq('business_id', businessId)
                 .single();
             
             }
@@ -95,8 +95,8 @@ export default function Dashboard({ params }: DashboardProps) {
             // Transform the database data to match the frontend interface
             const transformedBusiness = {
               businessId: business.id, // Use the database id as businessId
-              businessName: business.businessName,
-              ownerName: business.ownerName,
+              businessName: business.business_name,
+              ownerName: business.owner_name,
               description: business.description,
               category: business.category,
               products: business.products,
@@ -105,10 +105,10 @@ export default function Dashboard({ params }: DashboardProps) {
               address: business.address,
               whatsapp: business.whatsapp,
               instagram: business.instagram,
-              logoUrl: business.logoUrl,
+              logoUrl: business.logo_url,
               userId: user.id,
               createdAt: business.created_at,
-              websiteUrl: business.websiteUrl,
+              websiteUrl: business.website_url,
               websiteGenerated: !!business.websiteUrl,
               subdomain: business.subdomain
             };

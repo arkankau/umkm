@@ -7,9 +7,9 @@ import BusinessForm from './BusinessForm';
 import WebsitePreview from './WebsitePreview';
 
 interface BusinessData {
-  businessId: string;
-  businessName: string;
-  ownerName: string;
+  business_id: string;
+  business_name: string;
+  owner_name: string;
   description: string;
   category: 'restaurant' | 'retail' | 'service' | 'other';
   products: string;
@@ -18,11 +18,11 @@ interface BusinessData {
   address: string;
   whatsapp: string;
   instagram: string;
-  logoUrl: string;
-  userId: string;
+  logo_url: string;
+  user_id: string;
   createdAt: string;
-  websiteUrl?: string;
-  websiteGenerated?: boolean;
+  website_url?: string;
+  website_generated?: boolean;
 }
 
 interface WebsiteTabProps {
@@ -37,17 +37,18 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
   const [showPreview, setShowPreview] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
   const [websiteStatus, setWebsiteStatus] = useState<'not-generated' | 'generating' | 'generated' | 'error'>(
-    businessData.websiteUrl ? 'generated' : 'not-generated'
+    businessData.website_url ? 'generated' : 'not-generated'
   );
   const [websiteData, setWebsiteData] = useState<BusinessData>(businessData);
   const [products, setProducts] = useState<any[]>([]);
   const [showProductsMenu, setShowProductsMenu] = useState(false);
 
   // Transform businessData to match BusinessForm interface
-  const transformToBusinessFormData = (data: BusinessData) => ({
-    businessId: data.businessId,
-    businessName: data.businessName,
-    ownerName: data.ownerName,
+  // Handle both camelCase (businessName) and snake_case (business_name) from database
+  const transformToBusinessFormData = (data: any) => ({
+    business_id: data.businessId || data.id,
+    business_name: data.businessName || data.business_name,
+    owner_name: data.ownerName || data.owner_name,
     description: data.description,
     category: data.category,
     products: data.products,
@@ -56,9 +57,9 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
     address: data.address,
     whatsapp: data.whatsapp,
     instagram: data.instagram,
-    subdomain: data.businessName?.toLowerCase().replace(/\s+/g, '-') || data.businessId,
-    websiteUrl: data.websiteUrl,
-    websiteGenerated: data.websiteGenerated
+    subdomain: (data.businessName || data.business_name)?.toLowerCase().replace(/\s+/g, '-') || data.businessId || data.id,
+    website_url: data.websiteUrl || data.website_url,
+    website_generated: data.websiteGenerated || !!data.website_url
   });
 
   // Fetch products for this business
@@ -67,7 +68,7 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
       const { data, error } = await supabaseClient
         .from('products')
         .select('*')
-        .eq('business_id', businessData.businessId);
+        .eq('business_id', businessData.business_id);
 
       if (error) {
         console.error('Error fetching products:', error);
@@ -83,7 +84,7 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
   // Load products when component mounts
   useEffect(() => {
     fetchProducts();
-  }, [businessData.businessId]);
+  }, [businessData.business_id]);
 
   const handleGenerateWebsite = async () => {
     setIsGenerating(true);
@@ -103,6 +104,20 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
         productsInfo: productsInfo
       };
 
+      // Debug logging
+      console.log('=== CLIENT SIDE DEBUG ===');
+      console.log('Original businessData:', businessData);
+      console.log('Transformed data:', transformToBusinessFormData(businessData));
+      console.log('Final requestData:', requestData);
+      console.log('Required fields check:');
+      console.log('- businessName:', requestData.business_name);
+      console.log('- ownerName:', requestData.owner_name);
+      console.log('- description:', requestData.description);
+      console.log('- category:', requestData.category);
+      console.log('- phone:', requestData.phone);
+      console.log('- address:', requestData.address);
+      console.log('=== END CLIENT DEBUG ===');
+
       // Call the website generation API
       const response = await fetch('/api/generate-website', {
         method: 'POST',
@@ -113,7 +128,9 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate website');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('API Error Response:', errorData);
+        throw new Error(`Failed to generate website: ${errorData.message || errorData.error || 'Unknown error'}`);
       }
 
       const result = await response.json();
@@ -121,20 +138,20 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
       if (result.success) {
         // Update business record with website URL
         const { error } = await supabaseClient
-          .from('businessesNeo')
+          .from('businesses')
           .update({
-            websiteUrl: result.url,
-            websiteGenerated: true
+            website_url: result.url,
+            status: 'live'
           })
-          .eq('businessId', businessData.businessId);
+          .eq('id', businessData.business_id);
 
         if (error) throw error;
 
         setWebsiteStatus('generated');
         const updatedData = { 
           ...businessData, 
-          websiteUrl: result.url, 
-          websiteGenerated: true 
+          website_url: result.url, 
+          website_generated: true 
         } as BusinessData;
         onUpdate?.(updatedData);
         setWebsiteData(updatedData);
@@ -154,8 +171,8 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
   };
 
   const handleFormSubmit = async (formData: {
-    businessName: string;
-    ownerName: string;
+    business_name: string;
+    owner_name: string;
     description: string;
     category: string;
     products: string;
@@ -168,10 +185,10 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
     try {
       // Update business data with new form data
       const { error } = await supabaseClient
-        .from('businessesNeo')
+        .from('businesses')
         .update({
-          businessName: formData.businessName,
-          ownerName: formData.ownerName,
+          business_name: formData.business_name,
+          owner_name: formData.owner_name,
           description: formData.description,
           category: formData.category as 'restaurant' | 'retail' | 'service' | 'other',
           products: formData.products,
@@ -181,7 +198,7 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
           whatsapp: formData.whatsapp,
           instagram: formData.instagram,
         })
-        .eq('businessId', businessData.businessId);
+        .eq('id', businessData.business_id);
 
       if (error) throw error;
 
@@ -200,8 +217,8 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
   };
 
   const handleViewWebsite = () => {
-    if (websiteData.websiteUrl) {
-      window.open(websiteData.websiteUrl, '_blank');
+    if (websiteData.website_url) {
+      window.open(websiteData.website_url, '_blank');
     }
   };
 

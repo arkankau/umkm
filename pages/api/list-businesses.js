@@ -16,20 +16,39 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Get user from authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No authorization token provided' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    
+    // Verify the user token
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    
+    if (userError || !userData.user) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    const userId = userData.user.id;
+
+    // Fetch businesses belonging to the authenticated user
     const { data, error } = await supabase
       .from('businesses')
-      .select('id, business_name, business_id, subdomain, created_at')
-      .limit(5);
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching businesses:', error);
-      return res.status(500).json({ error: 'Failed to fetch businesses', details: error });
+      return res.status(500).json({ error: 'Database Error', details: error });
     }
 
     return res.status(200).json({ 
       success: true, 
-      businesses: data,
-      count: data.length
+      businesses: data || [],
+      count: data ? data.length : 0
     });
 
   } catch (error) {

@@ -48,24 +48,24 @@ export default function GenerateLogoPage() {
         // Try to get business data from both tables
         let business = null;
         
-        // Try businessesNeo first
+        // Try businesses table
         try {
           const data = await getBusinessInfoNeo(businessId);
           business = data;
         } catch (err) {
-          console.log('Business not found in businessesNeo, trying businesses table');
+          console.log('Business not found, trying businesses table lookup');
         }
         
-        // If not found in businessesNeo, try businesses table
+        // If not found, try direct businesses table lookup
         if (!business) {
-          const { data: businessNeo, error: businessNeoError } = await supabaseClient
-            .from('businessesNeo')
+          const { data: businessData, error: businessError } = await supabaseClient
+            .from('businesses')
             .select('*')
-            .eq('businessId', businessId)
+            .eq('business_id', businessId)
             .single();
 
-          if (!businessNeoError && businessNeo) {
-            business = businessNeo;
+          if (!businessError && businessData) {
+            business = businessData;
           } else {
             // Try businesses table
             const { data: businessOld, error: businessOldError } = await supabaseClient

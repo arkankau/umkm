@@ -16,6 +16,22 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Get user from authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No authorization token provided' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    
+    // Verify the user token
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    
+    if (userError || !userData.user) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    const userId = userData.user.id;
     const { businessId } = req.body;
 
     if (!businessId) {
@@ -24,11 +40,12 @@ export default async function handler(req, res) {
 
     console.log('Deploying website for business:', businessId);
 
-    // Get business data from database
+    // Get business data from database (ensure it belongs to the user)
     const { data: business, error: businessError } = await supabase
       .from('businesses')
       .select('*')
       .eq('id', businessId)
+      .eq('user_id', userId)
       .single();
 
     if (businessError || !business) {

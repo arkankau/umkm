@@ -184,17 +184,14 @@ const MarketingConsultantBot = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen font-inter bg-transparent">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-transparent font-inter">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center space-x-3">
-            <div className="bg-green-600 p-2 rounded-lg">
-              <Bot className="w-6 h-6 text-white" />
-            </div>
+          <div className="flex items-center justify-center space-x-3">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Marketing Consultant AI</h1>
-              <p className="text-sm text-gray-600">Your digital marketing growth partner</p>
+              <h1 className="text-xl  text-center font-mont font-bold text-gray-900">Personal Marketing Consultant</h1>
+              <p className="text-sm font-mont text-gray-600">An AI trained to give you expert marketing insights</p>
             </div>
           </div>
         </div>
@@ -372,18 +369,6 @@ const MarketingConsultantBot = () => {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="text-center mt-6 text-sm text-gray-600">
-          <div className="flex items-center justify-center space-x-2 mb-2">
-            <Brain className="w-4 h-4 text-green-600" />
-            <span>Powered by advanced AI models (Gemini, GPT-4, Claude) for personalized marketing advice!</span>
-          </div>
-          <div className="flex items-center justify-center space-x-2 mb-2">
-            <Lightbulb className="w-4 h-4 text-yellow-500" />
-            <span>Pro Tip: Set your business context and be specific about challenges for the best personalized advice!</span>
-          </div>
-          <p>This AI consultant provides comprehensive marketing guidance. Consider consulting with a professional for complex strategies.</p>
-        </div>
       </div>
     </div>
   );
