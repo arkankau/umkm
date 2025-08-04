@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "postbuild": "mkdir -p out && rsync -av --exclude='cache' --exclude='*.pack' .next/ out/.next/ && cp -r public/* out/",
     "lint": "next lint",
     "test:html": "ts-node test-html-generation.ts",
     "test:deployment": "ts-node test-website-deployment.ts"
