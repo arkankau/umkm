@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     // Generate initial subdomain for deployment with timestamp to avoid conflicts
     const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
-    const cleanBusinessName = businessData.business_name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 15);
+    const cleanBusinessName = businessData.business_name.toLowerCase().replace(/[^a-z0-9]/g, '');
     const initialSubdomain = `${cleanBusinessName}${timestamp}`;
 
     // Transform snake_case to camelCase for the website generator
@@ -81,10 +81,11 @@ export async function POST(request: NextRequest) {
         .from('businesses')
         .update({
           website_url: result.url,
+          website_generated: result.url ? true : false,
           status: 'live',
           updated_at: new Date().toISOString()
         })
-        .eq('id', businessData.business_id);
+        .eq('business_id', businessData.business_id);
 
       if (updateError) {
         console.error('Supabase update error:', updateError);
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
           status: 'error',
           updated_at: new Date().toISOString()
         })
-        .eq('id', businessData.business_id);
+        .eq('business_id', businessData.business_id);
 
       return NextResponse.json({
         success: false,
