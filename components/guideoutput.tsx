@@ -16,6 +16,7 @@ interface BusinessData {
   instagram: string;
   businessId?: string;
   userId?: string;
+  menu_url?: string;
   menuProducts?: Array<{
     id: string;
     category: string;
@@ -684,7 +685,51 @@ export default function GuideOutput({ data }: GuideOutputProps) {
             <h3 className="text-lg font-semibold">{lang === "en" ? "Products & Menu" : "Produk & Menu"}</h3>
           </div>
 
-          {/* Menu Display */}
+          {/* Menu Preview */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-bold text-gray-800">
+                {lang === "en" ? "Digital Menu" : "Menu Digital"}
+              </h3>
+              <button
+                onClick={handleCreateMenu}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                {data.menu_url ? (lang === "en" ? 'Edit Menu' : 'Ubah Menu') : (lang === "en" ? 'Create Menu' : 'Buat Menu')}
+              </button>
+            </div>
+
+            {data.menu_url ? (
+              <div className="relative">
+                <img 
+                  src={data.menu_url} 
+                  alt="Business Menu"
+                  className="w-full rounded-lg shadow-md" 
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-opacity flex items-center justify-center">
+                  <a 
+                    href={data.menu_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="bg-white text-gray-800 px-4 py-2 rounded-md shadow hover:bg-gray-100 transition-colors opacity-0 hover:opacity-100"
+                  >
+                    {lang === "en" ? "View Full Size" : "Lihat Ukuran Penuh"}
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <p className="text-gray-500">
+                  {lang === "en" ? "No menu has been created yet." : "Menu belum dibuat."}
+                </p>
+                <p className="text-gray-400 mt-2">
+                  {lang === "en" ? "Click the Create Menu button to get started." : "Klik tombol Buat Menu untuk memulai."}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Products List */}
           {loadingProducts ? (
             <div className="bg-white border border-gray-200 rounded-lg p-6">
               <div className="flex items-center justify-center py-8">

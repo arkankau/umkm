@@ -136,6 +136,10 @@ export default function CreateMenuPage() {
   useEffect(() => {
     if (businessData) {
       console.log('Business data updated:', businessData);
+      // If there's a menu URL, log it
+      if (businessData.menu_url) {
+        console.log('Existing menu URL:', businessData.menu_url);
+      }
     }
   }, [businessData]);
 
@@ -209,58 +213,58 @@ export default function CreateMenuPage() {
     }));
   };
 
-  const saveMenu = async () => {
+  // const saveMenu = async () => {
 
-    if (!businessData || !menuName.trim() || menuItems.length === 0) {
-      alert('Please provide a menu name and add at least one section with products');
-      return;
-    }
+  //   if (!businessData || !menuName.trim() || menuItems.length === 0) {
+  //     alert('Please provide a menu name and add at least one section with products');
+  //     return;
+  //   }
 
-    setSaving(true);
-    try {
-      // Create submenus dictionary with product IDs
-      const submenus: { [key: string]: string[] } = {};
-      menuItems.forEach(menuItem => {
-        submenus[menuItem.name] = menuItem.products.map(product => product.id);
-      });
+  //   setSaving(true);
+  //   try {
+  //     // Create submenus dictionary with product IDs
+  //     const submenus: { [key: string]: string[] } = {};
+  //     menuItems.forEach(menuItem => {
+  //       submenus[menuItem.name] = menuItem.products.map(product => product.id);
+  //     });
 
-      const menuData = {
-        id: `${businessData.business_id}-${menuName.trim()}`,
-        businessId: businessData.business_id,
-        name: menuName.trim(),
-        submenus: submenus,
-        updated_at: new Date().toISOString()
-      };
+  //     const menuData = {
+  //       id: `${businessData.business_id}-${menuName.trim()}`,
+  //       businessId: businessData.business_id,
+  //       name: menuName.trim(),
+  //       submenus: submenus,
+  //       updated_at: new Date().toISOString()
+  //     };
 
-      if (existingMenu) {
-        // Update existing menu
-        const { error } = await supabaseClient
-          .from('menus')
-          .update(menuData)
-          .eq('id', existingMenu.id);
+  //     if (existingMenu) {
+  //       // Update existing menu
+  //       const { error } = await supabaseClient
+  //         .from('menus')
+  //         .update(menuData)
+  //         .eq('id', existingMenu.id);
 
-        if (error) throw error;
-      } else {
-        // Create new menu
-        const { error } = await supabaseClient
-          .from('menus')
-          .insert({
-            ...menuData,
-            created_at: new Date().toISOString()
-          });
+  //       if (error) throw error;
+  //     } else {
+  //       // Create new menu
+  //       const { error } = await supabaseClient
+  //         .from('menus')
+  //         .insert({
+  //           ...menuData,
+  //           created_at: new Date().toISOString()
+  //         });
 
-        if (error) throw error;
-      }
+  //       if (error) throw error;
+  //     }
 
-      alert('Menu saved successfully!');
-      router.push(`/${businessData.user_id}/${businessData.business_id}`);
-    } catch (error) {
-      console.error('Error saving menu:', error);
-      alert('Error saving menu. Please try again.');
-    } finally {
-      setSaving(false);
-    }
-  };
+  //     alert('Menu saved successfully!');
+  //     router.push(`/${businessData.user_id}/${businessData.business_id}`);
+  //   } catch (error) {
+  //     console.error('Error saving menu:', error);
+  //     alert('Error saving menu. Please try again.');
+  //   } finally {
+  //     setSaving(false);
+  //   }
+  // };
 
   const generateMenuHTML = () => {
     if (!businessData) return '';
@@ -471,7 +475,7 @@ export default function CreateMenuPage() {
         </div>
         
         <div class="footer">
-            <p>© 2024 ${businessData.businessName}. All rights reserved.</p>
+            <p>© 2024 ${businessData.business_name}. All rights reserved.</p>
         </div>
     </div>
 </body>
@@ -481,27 +485,58 @@ export default function CreateMenuPage() {
   };
 
   const downloadMenu = async () => {
-    const html = generateMenuHTML();
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${businessData?.business_name}-menu.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
+    if (!businessData) return;
+    
     try {
+      const html = generateMenuHTML();
+      
+      // First, generate the menu image using EdgeOne API
       const response = await fetch('/api/generate-menu', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: html
+        body: JSON.stringify({
+          html: html,
+          businessId: businessData.business_id
+        }),
       });
-      console.log(response);
-  };}
+
+      if (!response.ok) {
+        throw new Error('Failed to generate menu image');
+      }
+
+      const { imageUrl } = await response.json();
+
+      // Update the business record with the menu URL
+      const { error: updateError } = await supabaseClient
+        .from('businesses')
+        .update({
+          menu_url: imageUrl
+        })
+        .eq('business_id', businessData.business_id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Trigger a download of the HTML as well
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${businessData.business_name}-menu.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      alert('Menu has been generated and saved successfully!');
+    } 
+      catch(error) {
+        console.error(error);
+      }
+  };
 
   if (loading) {
     return (
@@ -672,13 +707,13 @@ export default function CreateMenuPage() {
         {/* Action Buttons */}
         {menuItems.length > 0 && (
           <div className="mt-8 flex justify-center gap-4">
-            <button
+            {/* <button
               onClick={saveMenu}
               disabled={saving || !menuName.trim()}
               className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Saving...' : 'Save Menu'}
-            </button>
+            </button> */}
             <button
               onClick={downloadMenu}
               className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
@@ -690,7 +725,7 @@ export default function CreateMenuPage() {
 
         <button
           onClick={()=> router.push(`/${businessData.user_id}/${businessData.business_id}`)}
-          className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
+          className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-900 transition-colors text-lg font-medium"
           >
           Back to Dashboard
           </button>
