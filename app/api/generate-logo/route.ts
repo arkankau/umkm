@@ -56,9 +56,9 @@ export async function POST(request: NextRequest) {
     console.log('✅ Logo generated successfully:', logoUrl);
 
     let { data: business, error: businessError } = await supabaseClient
-      .from('businessesNeo')
-      .update({logoUrl})
-      .eq('businessId', businessId)
+      .from('businesses')
+      .update({logo_url: logoUrl})
+      .eq('business_id', businessId)
       .single();
 
     if (businessError) throw (businessError)

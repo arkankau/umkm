@@ -72,7 +72,7 @@ export default function Dashboard({ params }: DashboardProps) {
           let { data: business, error: businessError } = await supabaseClient
             .from('businesses')
             .select('*')
-            .eq('id', businessId)
+            .eq('business_id', businessId)
             .single();
 
             // If not found by id, try by business_id

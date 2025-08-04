@@ -19,6 +19,7 @@ interface Business {
   id: string;
   businessName?: string;
   business_name?: string;
+  business_id: string;
   ownerName?: string;
   owner_name?: string;
   description: string;
@@ -115,6 +116,7 @@ const Dashboard = () => {
         // Transform to match Business interface
         const transformedBusinesses = businessesData.map((business: any) => ({
           id: business.id,
+          business_id: business.business_id,
           businessName: business.business_name,
           ownerName: business.owner_name,
           description: business.description,
@@ -201,7 +203,7 @@ const Dashboard = () => {
   const handleBusinessClick = (business: Business) => {
     if (viewMode === 'businesses') {
       // Route to business edit page
-      router.push(`/${user?.id}/${business.id}`);
+      router.push(`/${user?.id}/${business.business_id}`);
     } else {
       // Route to website preview
       if (business.websiteUrl) {

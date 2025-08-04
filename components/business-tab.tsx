@@ -130,7 +130,7 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
           instagram: formData.instagram,
           logo_url: logoUrl
         })
-        .eq('id', businessData.businessId);
+        .eq('business_id', businessData.businessId);
 
       if (error) throw error;
 
