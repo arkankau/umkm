@@ -72,7 +72,7 @@ export default function Dashboard({ params }: DashboardProps) {
           let { data: business, error: businessError } = await supabaseClient
             .from('businesses')
             .select('*')
-            .eq('business_id', businessId)
+            .eq('id', businessId)
             .single();
 
             // If not found by id, try by business_id
@@ -94,7 +94,7 @@ export default function Dashboard({ params }: DashboardProps) {
 
             // Transform the database data to match the frontend interface
             const transformedBusiness = {
-              businessId: business.id, // Use the database id as businessId
+              businessId: business.business_id, // Use the database id as businessId
               businessName: business.business_name,
               ownerName: business.owner_name,
               description: business.description,
@@ -109,7 +109,7 @@ export default function Dashboard({ params }: DashboardProps) {
               userId: user.id,
               createdAt: business.created_at,
               websiteUrl: business.website_url,
-              websiteGenerated: !!business.websiteUrl,
+              websiteGenerated: !!business.website_url,
               subdomain: business.subdomain
             };
 

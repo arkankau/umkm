@@ -38,7 +38,7 @@ export default function Home() {
           <Link href="/features" className="border-2 border-yellow-500 font-mont rounded-2xl px-8 py-4 text-black text-lg font-semibold hover:bg-yellow-500 hover:text-black transition-colors duration-300">
             See How It Works
           </Link>
-          <Link href="/marketing-consultant" className="bg-yellow-500 font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:from-yellow-600 hover:to-red-600 transition-all duration-300 shadow-lg hover:shadow-xl">
+          <Link href="/marketing-consultant" className="bg-yellow-500 font-mont rounded-2xl px-8 py-4 text-white text-lg font-semibold hover:bg-yellow-600  transition-all duration-300 shadow-lg hover:shadow-xl">
             Get Marketing Advice
           </Link>
         </div>
