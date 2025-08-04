@@ -116,10 +116,10 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
 
       // Update business data
       const { error } = await supabaseClient
-        .from('businessesNeo')
+        .from('businesses')
         .update({
-          businessName: formData.businessName,
-          ownerName: formData.ownerName,
+          business_name: formData.businessName,
+          owner_name: formData.ownerName,
           description: formData.description,
           category: formData.category,
           products: formData.products,
@@ -128,9 +128,9 @@ export default function BusinessTab({ businessData, onUpdate }: BusinessTabProps
           address: formData.address,
           whatsapp: formData.whatsapp,
           instagram: formData.instagram,
-          logoUrl: logoUrl
+          logo_url: logoUrl
         })
-        .eq('businessId', businessData.businessId);
+        .eq('id', businessData.businessId);
 
       if (error) throw error;
 

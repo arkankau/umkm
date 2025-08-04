@@ -17,11 +17,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get business from businessesNeo table
+    // Get business from businesses table
     const { data: business, error } = await supabase
-      .from('businessesNeo')
+      .from('businesses')
       .select('*')
-      .eq('businessId', businessId)
+      .eq('business_id', businessId)
       .single();
 
     if (error) {
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     const { data: products, error: productsError } = await supabase
       .from('products')
       .select('*')
-      .eq('business_id', business.id);
+      .eq('business_id', businessId);
 
     if (productsError) {
       console.error('Error fetching products:', productsError);
@@ -46,8 +46,8 @@ export default async function handler(req, res) {
     // Format the response to match the expected BusinessInfo interface
     const businessInfo = {
       id: business.id,
-      businessName: business.businessName,
-      ownerName: business.ownerName,
+      businessName: business.business_name,
+      ownerName: business.owner_name,
       description: business.description,
       category: business.category,
       products: business.products,
@@ -56,10 +56,10 @@ export default async function handler(req, res) {
       address: business.address,
       whatsapp: business.whatsapp,
       instagram: business.instagram,
-      logoUrl: business.logoUrl,
-      websiteUrl: business.websiteUrl || '',
-      subdomain: business.businessId,
-      status: 'live', // Default status for businessesNeo
+      logoUrl: business.logo_url,
+      websiteUrl: business.website_url || '',
+      subdomain: business.subdomain,
+      status: business.status || 'live',
       createdAt: new Date(business.created_at).getTime(),
       deployedAt: business.deployed_at ? new Date(business.deployed_at).getTime() : undefined,
       googleMapsUrl: business.address ? `https://maps.google.com/?q=${encodeURIComponent(business.address)}` : '',

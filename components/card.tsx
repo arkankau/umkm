@@ -16,9 +16,9 @@ const Card = ({name, url, preview}: {name: string, url: string, preview: string}
       {/* Content */}
       <div className='p-4 flex flex-col h-full'>
         {/* Header */}
-        <div className='mb-4'>
+        <div className='mb-4 w-fit'>
           <h3 className='font-mont font-semibold text-xl text-gray-800 mb-1 leading-tight'>{name}</h3>
-          <p className='text-xs text-gray-500 font-inter'>{url}</p>
+          <p className='text-[10px] text-gray-500 font-inter'>{url}</p>
         </div>
 
         {/* Preview Image */}

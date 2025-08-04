@@ -68,9 +68,9 @@ export default function CreateMenuPage() {
       
       // Load business data
       const { data: business, error: businessError } = await supabaseClient
-        .from('businessesNeo')
+        .from('businesses')
         .select('*')
-        .eq('businessId', businessId)
+        .eq('business_id', businessId)
         .single();
 
       if (businessError) throw businessError;

@@ -1,7 +1,7 @@
 -- Create menus table for storing business menus
 CREATE TABLE IF NOT EXISTS menus (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    businessId VARCHAR(255) REFERENCES businessesNeo(businessId) ON DELETE CASCADE,
+    businessId VARCHAR(255) REFERENCES businesses(business_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     submenus JSONB NOT NULL DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

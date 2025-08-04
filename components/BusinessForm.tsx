@@ -65,11 +65,20 @@ export default function BusinessForm({ initialData, onSubmit, isEditing = false 
     setError(null);
 
     try {
+      // Get auth token from Supabase
+      const supabaseClient = (await import('@/app/lib/supabase')).default;
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      
+      if (!session?.access_token) {
+        throw new Error('No access token available. Please log in again.');
+      }
+
       // Save business data to database without deploying
       const response = await fetch('/api/save-business-data', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           ...formData,
@@ -157,10 +166,19 @@ export default function BusinessForm({ initialData, onSubmit, isEditing = false 
           throw new Error('Please save business data first before deploying');
         }
 
+        // Get auth token from Supabase
+        const supabaseClient = (await import('@/app/lib/supabase')).default;
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (!session?.access_token) {
+          throw new Error('No access token available. Please log in again.');
+        }
+
         const response = await fetch('/api/deploy-website', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
           },
           body: JSON.stringify({
             businessId: savedBusinessId

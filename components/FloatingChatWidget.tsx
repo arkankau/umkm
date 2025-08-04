@@ -17,7 +17,7 @@ const FloatingChatWidget = () => {
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={toggleChat}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center"
+          className="bg-button  text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center"
           aria-label="Open marketing consultant chat"
         >
           {isOpen ? (
@@ -32,13 +32,10 @@ const FloatingChatWidget = () => {
       {isOpen && (
         <div className="fixed bottom-24 right-6 z-50 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+          <div className="bg-button text-white p-4">
             <div className="flex items-center space-x-3">
-              <div className="bg-white/20 p-2 rounded-lg">
-                <Bot className="w-5 h-5" />
-              </div>
               <div>
-                <h3 className="font-semibold text-sm">Marketing Consultant AI</h3>
+                <h3 className="font-semibold text-sm">Your Personal Marketing Consultant</h3>
                 <p className="text-xs opacity-90">Get expert marketing advice</p>
               </div>
             </div>
@@ -65,7 +62,7 @@ const FloatingChatWidget = () => {
 
             <Link
               href="/marketing-consultant"
-              className="block w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-center py-3 px-4 rounded-lg font-medium transition-all duration-300"
+              className="block w-full bg-button hover:from-blue-700 hover:to-purple-700 text-white text-center py-3 px-4 rounded-lg font-medium transition-all duration-300"
             >
               Start Chatting Now
             </Link>

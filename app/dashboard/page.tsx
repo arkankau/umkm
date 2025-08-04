@@ -99,10 +99,11 @@ const Dashboard = () => {
       setBusinessesLoading(true);
       
       if (viewMode === 'businesses') {
-        // Fetch from businessesNeo table
+        // Fetch from businesses table for the current user
         const { data: businessesData, error } = await supabaseClient
-          .from('businessesNeo')
+          .from('businesses')
           .select('*')
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
         
         if (error) {
@@ -113,9 +114,9 @@ const Dashboard = () => {
         
         // Transform to match Business interface
         const transformedBusinesses = businessesData.map((business: any) => ({
-          id: business.businessId,
-          businessName: business.businessName,
-          ownerName: business.ownerName,
+          id: business.id,
+          businessName: business.business_name,
+          ownerName: business.owner_name,
           description: business.description,
           category: business.category,
           products: business.products,
@@ -124,10 +125,10 @@ const Dashboard = () => {
           address: business.address,
           whatsapp: business.whatsapp,
           instagram: business.instagram,
-          logoUrl: business.logoUrl,
-          websiteUrl: business.websiteUrl,
-          subdomain: business.businessId,
-          status: business.websiteGenerated ? 'live' : 'not-generated',
+          logoUrl: business.logo_url,
+          websiteUrl: business.website_url,
+          subdomain: business.subdomain,
+          status: business.status || 'not-generated',
           createdAt: new Date(business.created_at).getTime(),
           deployedAt: business.deployed_at ? new Date(business.deployed_at).getTime() : undefined,
           updatedAt: new Date(business.updated_at || business.created_at).getTime()
@@ -135,8 +136,21 @@ const Dashboard = () => {
         
         setBusinesses(transformedBusinesses);
       } else {
-        // Fetch from original API for websites view
-        const response = await fetch('/api/list-businesses');
+        // Get the current user's session to send auth token
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (!session?.access_token) {
+          console.error('No access token available');
+          setBusinesses([]);
+          return;
+        }
+
+        // Fetch from original API for websites view with auth token
+        const response = await fetch('/api/list-businesses', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
         
         if (!response.ok) {
           const errorData = await response.json();
@@ -246,7 +260,6 @@ const Dashboard = () => {
             <h2 className='text-lg font-bold'>{displayName}</h2>
             <h3 className='text-sm mb-2 sm:mb-1 text-gray-600'>{userEmail}</h3>
             <div className="flex gap-2 flex-col sm:flex-row">
-              <Link className='px-4 py-1 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 transition-colors' href='/settings'>Settings</Link>
               <button 
                 onClick={handleSignOut}
                 className='px-4 py-1 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600 transition-colors'

@@ -106,7 +106,7 @@ export async function getBusinessInfo(businessId: string): Promise<BusinessInfo>
   return response.json();
 }
 
-// Get business information from businessesNeo
+// Get business information from businesses
 export async function getBusinessInfoNeo(businessId: string): Promise<BusinessInfo> {
   const response = await fetch(`${API_BASE_URL}/get-business-neo?businessId=${businessId}`);
 
