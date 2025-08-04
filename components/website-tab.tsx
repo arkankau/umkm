@@ -46,9 +46,9 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
   // Transform businessData to match BusinessForm interface
   // Handle both camelCase (businessName) and snake_case (business_name) from database
   const transformToBusinessFormData = (data: any) => ({
-    business_id: data.businessId || data.id,
-    business_name: data.businessName || data.business_name,
-    owner_name: data.ownerName || data.owner_name,
+    businessId: data.businessId || data.business_id || data.id,
+    businessName: data.businessName || data.business_name,
+    ownerName: data.ownerName || data.owner_name,
     description: data.description,
     category: data.category,
     products: data.products,
@@ -198,7 +198,7 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
           whatsapp: formData.whatsapp,
           instagram: formData.instagram,
         })
-        .eq('id', businessData.business_id);
+        .eq('business_id', businessData.business_id);
 
       if (error) throw error;
 
