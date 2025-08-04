@@ -35,7 +35,7 @@ interface BusinessInfo {
 
 export default function GenerateLogoPage() {
   const params = useParams();
-  const businessId = params.businessId as string;
+  const businessId = params?.businessId as string;
   const [businessData, setBusinessData] = useState<BusinessInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -180,7 +180,7 @@ export default function GenerateLogoPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <Link href={`/${params.id}/${businessId}`}>
+        <Link href={`/${params?.id}/${businessId}`}>
           <Button variant="outline" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Business

@@ -56,8 +56,8 @@ export default async function handler(req, res) {
 
     console.log('Saving business data to Supabase:', businessName);
 
-    // Generate a unique business ID
-    const businessId = `${businessName.toLowerCase().replace(/\s+/g, '')}${Date.now()}`;
+    // Generate a unique business ID as UUID
+    const businessId = crypto.randomUUID();
     
     // Generate subdomain
     const subdomain = `${businessName.toLowerCase().replace(/\s+/g, '')}${Math.floor(Math.random() * 1000000)}`;

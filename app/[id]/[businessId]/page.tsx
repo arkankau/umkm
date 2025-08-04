@@ -153,6 +153,29 @@ export default function Dashboard({ params }: DashboardProps) {
     setBusinessData(updatedData);
   };
 
+  // Wrapper function to handle WebsiteTab's snake_case data format
+  const handleWebsiteUpdate = (updatedData: any) => {
+    const transformedData: BusinessData = {
+      businessId: updatedData.business_id || updatedData.businessId,
+      businessName: updatedData.business_name || updatedData.businessName,
+      ownerName: updatedData.owner_name || updatedData.ownerName,
+      description: updatedData.description,
+      category: updatedData.category,
+      products: updatedData.products,
+      phone: updatedData.phone,
+      email: updatedData.email,
+      address: updatedData.address,
+      whatsapp: updatedData.whatsapp,
+      instagram: updatedData.instagram,
+      logoUrl: updatedData.logo_url || updatedData.logoUrl,
+      userId: updatedData.user_id || updatedData.userId,
+      createdAt: updatedData.createdAt,
+      websiteUrl: updatedData.website_url || updatedData.websiteUrl,
+      websiteGenerated: updatedData.website_generated || updatedData.websiteGenerated
+    };
+    setBusinessData(transformedData);
+  };
+
   if (loading) {
     return (
       <div>
@@ -277,7 +300,27 @@ export default function Dashboard({ params }: DashboardProps) {
                 <BusinessTab businessData={businessData} onUpdate={handleBusinessUpdate} />
               )}
               {activeTab === 'website' && (
-                <WebsiteTab businessData={businessData} onUpdate={handleBusinessUpdate} />
+                <WebsiteTab 
+                  businessData={{
+                    business_id: businessData.businessId,
+                    business_name: businessData.businessName,
+                    owner_name: businessData.ownerName,
+                    description: businessData.description,
+                    category: businessData.category,
+                    products: businessData.products,
+                    phone: businessData.phone,
+                    email: businessData.email,
+                    address: businessData.address,
+                    whatsapp: businessData.whatsapp,
+                    instagram: businessData.instagram,
+                    logo_url: businessData.logoUrl,
+                    user_id: businessData.userId,
+                    createdAt: businessData.createdAt,
+                    website_url: businessData.websiteUrl,
+                    website_generated: businessData.websiteGenerated
+                  }} 
+                  onUpdate={handleWebsiteUpdate} 
+                />
               )}
               {activeTab === 'guide' && (
                 <GuideTab businessData={businessData} />
