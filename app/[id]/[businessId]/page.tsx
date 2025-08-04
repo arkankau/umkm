@@ -39,6 +39,8 @@ export default function Dashboard({ params }: DashboardProps) {
   const [error, setError] = useState<string | null>(null);
   const [businessId, setBusinessId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'business-info' | 'website' | 'guide'>('business-info');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const initializePage = async () => {
@@ -176,6 +178,40 @@ export default function Dashboard({ params }: DashboardProps) {
     setBusinessData(transformedData);
   };
 
+  const handleDeleteBusiness = async () => {
+    if (!businessData || !user) return;
+    
+    setIsDeleting(true);
+    try {
+      // Get the current session token
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('No valid session found');
+      }
+
+      const response = await fetch(`/api/businesses/${businessData.businessId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete business');
+      }
+
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert(`Failed to delete business: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   if (loading) {
     return (
       <div>
@@ -246,14 +282,22 @@ export default function Dashboard({ params }: DashboardProps) {
                   <span className="text-sm text-gray-500">Owner: {businessData.ownerName}</span>
                 </div>
               </div>
-              {businessData.websiteUrl && (
+              <div className="flex gap-3">
+                {businessData.websiteUrl && (
+                  <button
+                    onClick={handleViewWebsite}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    View Website
+                  </button>
+                )}
                 <button
-                  onClick={handleViewWebsite}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
                 >
-                  View Website
+                  Delete Business
                 </button>
-              )}
+              </div>
             </div>
           </div>
 
@@ -347,6 +391,39 @@ export default function Dashboard({ params }: DashboardProps) {
             )}
           </div>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Delete Business
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete "{businessData.businessName}"? This action cannot be undone and will permanently remove all business data including any associated website.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteBusiness}
+                  disabled={isDeleting}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isDeleting && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  )}
+                  {isDeleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
