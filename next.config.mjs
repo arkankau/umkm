@@ -8,12 +8,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Add these new configurations for static export
-  output: 'export',
-  trailingSlash: true,
-  images: {
-    unoptimized: true
-  },
+  // Remove the static export settings - EdgeOne can handle serverless functions
 };
 
 export default nextConfig;
