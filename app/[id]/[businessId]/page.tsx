@@ -332,6 +332,7 @@ function GuideTab({ businessData }: { businessData: BusinessData }) {
 
   // Transform businessData to match GuideOutput interface
   const guideData = {
+    businessId : businessData.businessId,
     businessName: businessData.businessName,
     ownerName: businessData.ownerName,
     description: businessData.description,
