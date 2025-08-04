@@ -27,23 +27,27 @@ interface Menu {
   updated_at: string;
 }
 
-interface BusinessData {
-  businessId: string;
-  businessName: string;
-  ownerName: string;
-  description: string;
-  category: 'restaurant' | 'retail' | 'service' | 'other';
-  products: string;
-  phone: string;
-  email: string;
-  address: string;
-  whatsapp: string;
-  instagram: string;
-  logoUrl: string;
-  userId: string;
-  createdAt: string;
-  websiteUrl?: string;
-}
+// interface BusinessData {
+//   id: string;
+//   status?:string;
+//   business_id: string;
+//   business_name: string;
+//   owner_name: string;
+//   description: string;
+//   category: 'restaurant' | 'retail' | 'service' | 'other';
+//   products: string;
+//   subdomain?: string;
+//   phone: string;
+//   email: string;
+//   address: string;
+//   whatsapp: string;
+//   instagram: string;
+//   logo_url: string;
+//   user_id: string;
+//   created_at: string;
+//   website_url?: string;
+//   deployed_at?: string;
+// }
 
 export default function CreateMenuPage() {
   const params = useParams();
@@ -72,6 +76,7 @@ export default function CreateMenuPage() {
         .select('*')
         .eq('business_id', businessId)
         .single();
+      console.log(business)
 
       if (businessError) throw businessError;
       setBusinessData(business);
@@ -127,6 +132,12 @@ export default function CreateMenuPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (businessData) {
+      console.log('Business data updated:', businessData);
+    }
+  }, [businessData]);
 
   const handleDragStart = (e: React.DragEvent, product: Product) => {
     setDraggedProduct(product);
@@ -214,8 +225,8 @@ export default function CreateMenuPage() {
       });
 
       const menuData = {
-        id: `${businessData.businessId}-${menuName.trim()}`,
-        businessId: businessData.businessId,
+        id: `${businessData.business_id}-${menuName.trim()}`,
+        businessId: businessData.business_id,
         name: menuName.trim(),
         submenus: submenus,
         updated_at: new Date().toISOString()
@@ -242,7 +253,7 @@ export default function CreateMenuPage() {
       }
 
       alert('Menu saved successfully!');
-      router.push(`/${businessData.userId}/${businessData.businessId}`);
+      router.push(`/${businessData.user_id}/${businessData.business_id}`);
     } catch (error) {
       console.error('Error saving menu:', error);
       alert('Error saving menu. Please try again.');
@@ -260,7 +271,7 @@ export default function CreateMenuPage() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${businessData.businessName} - Menu</title>
+    <title>${businessData.business_name} - Menu</title>
     <style>
         * {
             margin: 0;
@@ -423,13 +434,14 @@ export default function CreateMenuPage() {
 <body>
     <div class="container">
         <div class="header">
-            <h1>${businessData.businessName}</h1>
+            <h1>${businessData.business_name}</h1>
             <p>${businessData.description}</p>
             <div class="contact-info">
                 ${businessData.phone ? `<div class="contact-item">📞 ${businessData.phone}</div>` : ''}
                 ${businessData.address ? `<div class="contact-item">📍 ${businessData.address}</div>` : ''}
                 ${businessData.whatsapp ? `<div class="contact-item">💬 ${businessData.whatsapp}</div>` : ''}
             </div>
+            
         </div>
         
         <div class="menu-grid">`;
@@ -468,18 +480,28 @@ export default function CreateMenuPage() {
     return html;
   };
 
-  const downloadMenu = () => {
+  const downloadMenu = async () => {
     const html = generateMenuHTML();
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${businessData?.businessName}-menu.html`;
+    a.download = `${businessData?.business_name}-menu.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
+
+    try {
+      const response = await fetch('/api/generate-menu', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: html
+      });
+      console.log(response);
+  };}
 
   if (loading) {
     return (
@@ -665,6 +687,14 @@ export default function CreateMenuPage() {
             </button>
           </div>
         )}
+
+        <button
+          onClick={()=> router.push(`/${businessData.user_id}/${businessData.business_id}`)}
+          className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
+          >
+          Back to Dashboard
+          </button>
+        
       </div>
     </div>
   );
