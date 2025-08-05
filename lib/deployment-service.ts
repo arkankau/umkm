@@ -98,9 +98,11 @@ export class DeploymentService {
             errorMessage = 'Deployment timed out due to Vercel function execution limits. Consider using API fallback for complex deployments.';
           } else if (error.message.includes('Memory limit exceeded')) {
             errorMessage = 'Vercel memory limit exceeded during deployment. Try using API deployment method instead.';
-          } else if (error.message.includes('Chrome executable not found')) {
-            errorMessage = 'Puppeteer Chrome executable not available on Vercel. Using API deployment fallback.';
-            deploymentMethod = 'api-fallback';
+          } else if (error.message.includes('Chrome') || error.message.includes('chrome') || error.message.includes('executable')) {
+            errorMessage = 'Chrome configuration issue on Vercel. Ensure @sparticuz/chromium is properly installed and configured.';
+            deploymentMethod = 'puppeteer-vercel';
+          } else if (error.message.includes('Protocol error') || error.message.includes('Target closed')) {
+            errorMessage = 'Puppeteer protocol error on Vercel. This may be due to memory or timeout constraints.';
           }
         }
       }

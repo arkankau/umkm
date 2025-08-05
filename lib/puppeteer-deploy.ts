@@ -1,43 +1,25 @@
 import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium';
 
 // Vercel-specific configuration
 const isVercel = process.env.VERCEL || process.env.NODE_ENV === 'production';
 
-function getPuppeteerConfig() {
+async function getPuppeteerConfig() {
   if (isVercel) {
-    // Vercel configuration with chrome-aws-lambda compatibility
+    // Vercel configuration with @sparticuz/chromium
+    const executablePath = await chromium.executablePath();
+    
     return {
-      headless: true,
+      headless: chromium.headless,
       args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process',
-        '--disable-gpu',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-        '--disable-features=TranslateUI',
-        '--disable-ipc-flooding-protection',
-        '--disable-default-apps',
-        '--disable-extensions',
-        '--disable-plugins',
-        '--disable-sync',
-        '--disable-translate',
+        ...chromium.args,
         '--hide-scrollbars',
-        '--mute-audio',
-        '--no-default-browser-check',
-        '--no-pings',
         '--disable-web-security',
-        '--disable-features=VizDisplayCompositor',
-        '--memory-pressure-off',
-        '--max_old_space_size=4096'
+        '--disable-features=VizDisplayCompositor'
       ],
-      timeout: 30000,
-      executablePath: process.env.CHROME_EXECUTABLE_PATH || undefined
+      defaultViewport: chromium.defaultViewport,
+      executablePath,
+      timeout: 30000
     };
   } else {
     // Local development configuration
@@ -92,8 +74,17 @@ async function deploy(htmlCode: string, domain: string) {
 
   try {
     // Launch browser with environment-specific configuration
-    const config = getPuppeteerConfig();
+    const config = await getPuppeteerConfig();
     console.log(`Launching browser in ${isVercel ? 'Vercel' : 'development'} mode...`);
+    
+    if (isVercel) {
+      console.log('Vercel Chrome executable path:', config.executablePath);
+      console.log('Vercel configuration:', {
+        headless: config.headless,
+        argsCount: config.args?.length || 0,
+        hasDefaultViewport: !!config.defaultViewport
+      });
+    }
     
     browser = await puppeteer.launch(config);
 
@@ -101,7 +92,11 @@ async function deploy(htmlCode: string, domain: string) {
     
     // Set random user agent and viewport
     await page.setUserAgent(getRandomUserAgent());
-    await page.setViewport({width: 1024, height: 768});
+    
+    // Set viewport based on environment
+    if (!isVercel || !config.defaultViewport) {
+      await page.setViewport({width: 1024, height: 768});
+    }
     
     // Set extra headers to appear more human-like
     await page.setExtraHTTPHeaders({
@@ -244,10 +239,12 @@ async function deploy(htmlCode: string, domain: string) {
           errorMessage = 'Vercel deployment timeout. Try reducing the complexity of the operation or increasing timeout limits.';
         } else if (error.message.includes('Memory limit exceeded') || error.message.includes('out of memory')) {
           errorMessage = 'Vercel memory limit exceeded. Consider optimizing the deployment process or upgrading your Vercel plan.';
-        } else if (error.message.includes('chrome') || error.message.includes('executable')) {
-          errorMessage = 'Chrome executable not found on Vercel. Ensure proper Puppeteer configuration for serverless environment.';
+        } else if (error.message.includes('chrome') || error.message.includes('executable') || error.message.includes('Chrome')) {
+          errorMessage = 'Chrome configuration issue on Vercel. Ensure @sparticuz/chromium is properly configured for serverless environment.';
         } else if (error.message.includes('function timeout')) {
           errorMessage = 'Vercel function timeout. The deployment process took too long to complete.';
+        } else if (error.message.includes('Protocol error') || error.message.includes('Target closed')) {
+          errorMessage = 'Puppeteer protocol error on Vercel. This may be due to memory constraints or timeout issues.';
         }
       }
     }
