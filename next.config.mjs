@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
+
   // Ignore ESLint during build
   eslint: {
     ignoreDuringBuilds: true,
