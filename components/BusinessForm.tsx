@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { submitBusiness, BusinessData, SubmitBusinessResponse } from '../lib/api';
 import WebsitePreview from './WebsitePreview';
+import { submitBusiness, BusinessData, SubmitBusinessResponse } from '../lib/api';
 
 interface BusinessFormProps {
   initialData?: Partial<BusinessData>;
