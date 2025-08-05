@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateAndUploadLogo } from '@/lib/generate-image';
+import { generateAndUploadLogo } from '@/lib_unused/generate-image';
 import supabaseClient from '@/app/lib/supabase';
 
 export async function POST(request: NextRequest) {

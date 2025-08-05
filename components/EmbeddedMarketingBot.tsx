@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Lightbulb, TrendingUp, Target, MessageCircle, BarChart3, Zap, Settings, Brain } from 'lucide-react';
-import { ChatMessage, MarketingContext } from '@/lib/marketing-chatbot-service';
+import { ChatMessage, MarketingContext } from 'https://umkm-eight.vercel.app/lib/marketing-chatbot-service';
 
 const EmbeddedMarketingBot = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { createEdgeOneAPI } from '@/lib/edgeone-api';
+import { createEdgeOneAPI } from '@/lib_unused/edgeone-api';
 
 export async function DELETE(
   request: NextRequest,

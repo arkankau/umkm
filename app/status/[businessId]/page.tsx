@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getBusinessStatus, BusinessStatus } from '../../../lib/api';
+import { getBusinessStatus, BusinessStatus } from 'https://umkm-eight.vercel.app/lib/api';
 
 export default function StatusPage({ params }: { params: Promise<{ businessId: string }> }) {
   const [status, setStatus] = useState<BusinessStatus | null>(null);

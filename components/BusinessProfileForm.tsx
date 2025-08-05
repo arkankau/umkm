@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import supabaseClient from '@/app/lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { generateBusinessId } from '@/lib/utils';
+import { generateBusinessId } from 'https://umkm-eight.vercel.app/lib/utils';
 
 interface Product {
   id: string;

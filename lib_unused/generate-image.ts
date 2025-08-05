@@ -1,6 +1,6 @@
 console.log('📦 Loading Google GenAI...');
 import { GoogleGenAI, Modality } from "@google/genai"
-import supabaseServer from '@/lib/supabase-server';
+import supabaseServer from '@/lib_unused/supabase-server';
 
 
 console.log('🔑 Checking API key...');

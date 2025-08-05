@@ -1,4 +1,4 @@
-import { parallelAIService } from '../../lib/parallel-ai-service';
+import { parallelAIService } from 'https://umkm-eight.vercel.app/lib/parallel-ai-service';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
