@@ -15,6 +15,8 @@ const nextConfig = {
     config.cache = false;
     return config;
   },
+
+  output: "export"
   
 };
 
