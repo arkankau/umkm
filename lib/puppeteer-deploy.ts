@@ -18,8 +18,8 @@ async function getPuppeteerConfig() {
         '--disable-features=VizDisplayCompositor'
       ],
       defaultViewport: chromium.defaultViewport,
-      executablePath,
-      timeout: 30000
+      executablePath
+      // No timeout - let Vercel handle execution limits
     };
   } else {
     // Local development configuration
@@ -49,8 +49,8 @@ async function getPuppeteerConfig() {
         '--no-pings',
         '--disable-web-security',
         '--disable-features=VizDisplayCompositor'
-      ],
-      timeout: 60000
+      ]
+      // No timeout for local development either
     };
   }
 }
@@ -114,8 +114,8 @@ async function deploy(htmlCode: string, domain: string) {
 
     console.log('Navigating to EdgeOne Pages...');
     await page.goto('https://edgeone.ai/pages/drop', { 
-      waitUntil: 'load',
-      timeout: 30000 
+      waitUntil: 'load'
+      // No timeout - let Vercel handle execution limits
     });
 
     const input = await page.locator('input[placeholder="Enter your domain name"]').waitHandle();
@@ -140,7 +140,7 @@ async function deploy(htmlCode: string, domain: string) {
     await page.waitForFunction(() => {
       const btn = document.querySelector('button.PagesUploadCard_deploymentBtn__7ZMYf');
       return btn && !btn.hasAttribute('disabled');
-    }, { timeout: 30000 });
+    });
 
     console.log('Clicking deploy button...');
     await page.locator('button.PagesUploadCard_deploymentBtn__7ZMYf').click({ delay: 100 });

@@ -58,16 +58,8 @@ export class DeploymentService {
       // Deploy using puppeteer with Vercel-specific considerations
       console.log(`Deploying website using puppeteer in ${isVercel ? 'Vercel serverless' : 'local'} environment...`);
       
-      // Add timeout handling for Vercel's function execution limits
-      const deploymentTimeout = isVercel ? 25000 : 60000; // 25s for Vercel, 60s for local
-      const deploymentPromise = puppeteerDeploy(htmlContent, domain);
-      
-      const result = await Promise.race([
-        deploymentPromise,
-        new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error(`Deployment timed out after ${deploymentTimeout}ms`)), deploymentTimeout)
-        )
-      ]);
+      // Let Vercel handle its own execution limits naturally
+      const result = await puppeteerDeploy(htmlContent, domain);
 
       const deploymentResult: DeploymentResult = {
         success: result.success,
