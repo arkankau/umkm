@@ -3,6 +3,12 @@
 import { useEffect, useState } from 'react';
 import { getBusinessStatus, BusinessStatus } from '../../../lib/api';
 
+export async function generateStaticParams() {
+  // Return empty array since this is a dynamic client-side route
+  // The actual data is fetched on the client side
+  return []
+}
+
 export default function StatusPage({ params }: { params: Promise<{ businessId: string }> }) {
   const [status, setStatus] = useState<BusinessStatus | null>(null);
   const [loading, setLoading] = useState(true);

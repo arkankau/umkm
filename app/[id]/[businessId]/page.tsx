@@ -8,6 +8,12 @@ import { User } from '@supabase/supabase-js';
 import BusinessTab from '@/components/business-tab';
 import WebsiteTab from '@/components/website-tab';
 
+export async function generateStaticParams() {
+  // Return empty array since this is a dynamic client-side route
+  // The actual data is fetched on the client side
+  return []
+}
+
 interface BusinessData {
   businessId: string;
   businessName: string;
@@ -183,23 +189,15 @@ export default function Dashboard({ params }: DashboardProps) {
     
     setIsDeleting(true);
     try {
-      // Get the current session token
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (!session?.access_token) {
-        throw new Error('No valid session found');
-      }
+      // Direct database deletion using Supabase client
+      const { error: deleteError } = await supabaseClient
+        .from('businesses')
+        .delete()
+        .eq('business_id', businessData.businessId)
+        .eq('user_id', user.id);
 
-      const response = await fetch(`/api/businesses/${businessData.businessId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete business');
+      if (deleteError) {
+        throw new Error(deleteError.message || 'Failed to delete business');
       }
 
       router.push('/dashboard');

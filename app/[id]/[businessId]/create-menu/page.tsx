@@ -4,6 +4,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import supabaseClient from '@/app/lib/supabase';
 
+export async function generateStaticParams() {
+  // Return empty array since this is a dynamic client-side route
+  // The actual data is fetched on the client side
+  return []
+}
+
 interface Product {
   id: string;
   name: string;

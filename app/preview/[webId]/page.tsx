@@ -4,6 +4,12 @@ import { useRouter, useParams } from 'next/navigation'
 import NavDash from '@/components/dashboardnav'
 import supabaseClient from '@/app/lib/supabase'
 
+export async function generateStaticParams() {
+  // Return empty array since this is a dynamic client-side route
+  // The actual data is fetched on the client side
+  return []
+}
+
 interface Website {
   id: string
   name: string

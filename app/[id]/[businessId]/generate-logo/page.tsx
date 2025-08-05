@@ -10,6 +10,12 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
+export async function generateStaticParams() {
+  // Return empty array since this is a dynamic client-side route
+  // The actual data is fetched on the client side
+  return []
+}
+
 interface BusinessInfo {
   id: string;
   businessName: string;
