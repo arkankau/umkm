@@ -1,26 +1,48 @@
 import puppeteer from 'puppeteer';
 
-// Generate random user agent
-function getRandomUserAgent() {
-  const userAgents = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/121.0'
-  ];
-  return userAgents[Math.floor(Math.random() * userAgents.length)];
-}
+// Vercel-specific configuration
+const isVercel = process.env.VERCEL || process.env.NODE_ENV === 'production';
 
-
-async function deploy(htmlCode: string, domain: string) {
-  let browser;
-  let newDomain = domain;
-
-  try {
-    // Launch browser with enhanced security and performance settings
-    browser = await puppeteer.launch({
-      headless: true, // Use new headless mode
+function getPuppeteerConfig() {
+  if (isVercel) {
+    // Vercel configuration with chrome-aws-lambda compatibility
+    return {
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-features=TranslateUI',
+        '--disable-ipc-flooding-protection',
+        '--disable-default-apps',
+        '--disable-extensions',
+        '--disable-plugins',
+        '--disable-sync',
+        '--disable-translate',
+        '--hide-scrollbars',
+        '--mute-audio',
+        '--no-default-browser-check',
+        '--no-pings',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor',
+        '--memory-pressure-off',
+        '--max_old_space_size=4096'
+      ],
+      timeout: 30000,
+      executablePath: process.env.CHROME_EXECUTABLE_PATH || undefined
+    };
+  } else {
+    // Local development configuration
+    return {
+      headless: true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -46,8 +68,34 @@ async function deploy(htmlCode: string, domain: string) {
         '--disable-web-security',
         '--disable-features=VizDisplayCompositor'
       ],
-      timeout: 60000, // Set a longer timeout for browser launch
-    });
+      timeout: 60000
+    };
+  }
+}
+
+// Generate random user agent
+function getRandomUserAgent() {
+  const userAgents = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/121.0'
+  ];
+  return userAgents[Math.floor(Math.random() * userAgents.length)];
+}
+
+
+async function deploy(htmlCode: string, domain: string) {
+  let browser;
+  let newDomain = domain;
+
+  try {
+    // Launch browser with environment-specific configuration
+    const config = getPuppeteerConfig();
+    console.log(`Launching browser in ${isVercel ? 'Vercel' : 'development'} mode...`);
+    
+    browser = await puppeteer.launch(config);
 
     const page = await browser.newPage();
     
@@ -184,14 +232,38 @@ async function deploy(htmlCode: string, domain: string) {
     
   } catch (error: unknown) {
     console.error('Puppeteer deployment failed:', error);
+    
+    // Enhanced error handling for Vercel-specific issues
+    let errorMessage = 'Puppeteer deployment failed';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      
+      // Handle common Vercel deployment issues
+      if (isVercel) {
+        if (error.message.includes('ECONNRESET') || error.message.includes('timeout')) {
+          errorMessage = 'Vercel deployment timeout. Try reducing the complexity of the operation or increasing timeout limits.';
+        } else if (error.message.includes('Memory limit exceeded') || error.message.includes('out of memory')) {
+          errorMessage = 'Vercel memory limit exceeded. Consider optimizing the deployment process or upgrading your Vercel plan.';
+        } else if (error.message.includes('chrome') || error.message.includes('executable')) {
+          errorMessage = 'Chrome executable not found on Vercel. Ensure proper Puppeteer configuration for serverless environment.';
+        } else if (error.message.includes('function timeout')) {
+          errorMessage = 'Vercel function timeout. The deployment process took too long to complete.';
+        }
+      }
+    }
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Puppeteer deployment failed',
+      error: errorMessage,
       domain: domain
     };
   } finally {
     if (browser) {
-      await browser.close();
+      try {
+        await browser.close();
+      } catch (closeError) {
+        console.warn('Error closing browser:', closeError);
+      }
     }
   }
 }

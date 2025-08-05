@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { deploymentService } from '@/lib/deployment-service';
 import supabaseClient from '@/app/lib/supabase';
 
+export const maxDuration = 300;
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const businessData = await request.json();
@@ -120,10 +123,28 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Generate website error:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    let statusCode = 500;
+    let errorCode = 'INTERNAL_ERROR';
+    
+    if (errorMessage.includes('timeout') || errorMessage.includes('Function timeout')) {
+      statusCode = 408;
+      errorCode = 'TIMEOUT';
+    } else if (errorMessage.includes('memory') || errorMessage.includes('Memory limit')) {
+      statusCode = 507;
+      errorCode = 'MEMORY_LIMIT';
+    } else if (errorMessage.includes('rate limit') || errorMessage.includes('quota')) {
+      statusCode = 429;
+      errorCode = 'RATE_LIMIT';
+    }
+    
     return NextResponse.json({
       success: false,
-      error: 'Internal Server Error',
-      message: 'Failed to generate website'
-    }, { status: 500 });
+      error: 'Website Generation Error',
+      message: 'Failed to generate website',
+      details: errorMessage,
+      code: errorCode
+    }, { status: statusCode });
   }
 } 

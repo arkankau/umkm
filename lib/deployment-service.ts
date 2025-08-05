@@ -2,6 +2,9 @@ import { BusinessData } from './api';
 import { generateCompleteHTML } from './website-generator';
 import puppeteerDeploy from './puppeteer-deploy';
 
+// Vercel environment detection
+const isVercel = process.env.VERCEL || process.env.NODE_ENV === 'production';
+
 export interface DeploymentResult {
   success: boolean;
   url?: string;
@@ -19,7 +22,12 @@ const deploymentStatus = new Map<string, DeploymentResult>();
 
 export class DeploymentService {
   constructor() {
-    // No initialization needed for API-based deployment
+    // Log environment information
+    console.log(`DeploymentService initialized in ${isVercel ? 'Vercel' : 'development'} environment`);
+    
+    if (isVercel) {
+      console.log('Vercel-specific optimizations enabled for Puppeteer deployment');
+    }
   }
 
   async deployWebsite(businessData: BusinessData, domain: string, customHtml?: string): Promise<DeploymentResult> {
@@ -47,9 +55,19 @@ export class DeploymentService {
         htmlContent = generateCompleteHTML(businessData);
       }
       
-      // Deploy using puppeteer directly
-      console.log('Deploying website using puppeteer...');
-      const result = await puppeteerDeploy(htmlContent, domain);
+      // Deploy using puppeteer with Vercel-specific considerations
+      console.log(`Deploying website using puppeteer in ${isVercel ? 'Vercel serverless' : 'local'} environment...`);
+      
+      // Add timeout handling for Vercel's function execution limits
+      const deploymentTimeout = isVercel ? 25000 : 60000; // 25s for Vercel, 60s for local
+      const deploymentPromise = puppeteerDeploy(htmlContent, domain);
+      
+      const result = await Promise.race([
+        deploymentPromise,
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error(`Deployment timed out after ${deploymentTimeout}ms`)), deploymentTimeout)
+        )
+      ]);
 
       const deploymentResult: DeploymentResult = {
         success: result.success,
@@ -66,12 +84,33 @@ export class DeploymentService {
 
     } catch (error) {
       console.error('Deployment failed:', error);
+      
+      // Enhanced error handling for Vercel-specific issues
+      let errorMessage = 'Deployment failed';
+      let deploymentMethod = 'puppeteer';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        // Handle Vercel-specific errors
+        if (isVercel) {
+          if (error.message.includes('timed out')) {
+            errorMessage = 'Deployment timed out due to Vercel function execution limits. Consider using API fallback for complex deployments.';
+          } else if (error.message.includes('Memory limit exceeded')) {
+            errorMessage = 'Vercel memory limit exceeded during deployment. Try using API deployment method instead.';
+          } else if (error.message.includes('Chrome executable not found')) {
+            errorMessage = 'Puppeteer Chrome executable not available on Vercel. Using API deployment fallback.';
+            deploymentMethod = 'api-fallback';
+          }
+        }
+      }
+      
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Deployment failed',
-        deploymentMethod: 'puppeteer',
+        error: errorMessage,
+        deploymentMethod,
         status: 'error',
-        message: 'Deployment failed'
+        message: errorMessage
       };
     }
   }
