@@ -74,7 +74,7 @@ export default function BusinessForm({ initialData, onSubmit, isEditing = false 
       }
 
       // Save business data to database without deploying
-      const response = await fetch('/api/save-business-data', {
+      const response = await fetch('https://umkm-eight.vercel.app/api/save-business-data', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +110,7 @@ export default function BusinessForm({ initialData, onSubmit, isEditing = false 
     setIsGeneratingLogo(true);
     
     try {
-      const response = await fetch('/api/generate-logo', {
+      const response = await fetch('https://umkm-eight.vercel.app/api/generate-logo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -174,7 +174,7 @@ export default function BusinessForm({ initialData, onSubmit, isEditing = false 
           throw new Error('No access token available. Please log in again.');
         }
 
-        const response = await fetch('/api/deploy-website', {
+        const response = await fetch('https://umkm-eight.vercel.app/api/deploy-website', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

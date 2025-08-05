@@ -94,7 +94,7 @@ export default function GuideOutput({ data }: GuideOutputProps) {
       
       setLoadingProducts(true);
       try {
-        const response = await fetch(`/api/get-menu?businessId=${data.businessId}`);
+        const response = await fetch(`https://umkm-eight.vercel.app/api/get-menu?businessId=${data.businessId}`);
         const result = await response.json();
         
         if (result.success) {

@@ -189,7 +189,7 @@ export default function Dashboard({ params }: DashboardProps) {
         throw new Error('No valid session found');
       }
 
-      const response = await fetch(`/api/businesses/${businessData.businessId}`, {
+      const response = await fetch(`'https://umkm-eight.vercel.app/api/businesses/${businessData.businessId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,

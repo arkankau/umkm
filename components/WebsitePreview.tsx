@@ -37,7 +37,7 @@ export default function WebsitePreview({ businessData, onClose }: WebsitePreview
         if (businessData.businessId) {
           console.log('Loading saved HTML from database for business:', businessData.businessId);
           
-          const response = await fetch('/api/get-saved-html', {
+          const response = await fetch('https://umkm-eight.vercel.app/api/get-saved-html', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ export default function WebsitePreview({ businessData, onClose }: WebsitePreview
         }
 
         // Use template-based generation for initial preview (no Gemini API)
-        const response = await fetch('/api/preview-website-template', {
+        const response = await fetch('https://umkm-eight.vercel.app/api/preview-website-template', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -211,7 +211,7 @@ export default function WebsitePreview({ businessData, onClose }: WebsitePreview
         hasSubdomain: !!businessData.subdomain
       });
 
-      const response = await fetch('/api/save-website', {
+      const response = await fetch('https://umkm-eight.vercel.app/api/save-website', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -64,7 +64,7 @@ Requirements:
     setError(null);
 
     try {
-      const response = await fetch('/api/generate-logo', {
+      const response = await fetch('https://umkm-eight.vercel.app/api/generate-logo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

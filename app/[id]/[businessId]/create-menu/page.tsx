@@ -496,7 +496,7 @@ export default function CreateMenuPage() {
       const html = generateMenuHTML();
       
       // First, generate the menu image using EdgeOne API
-      const response = await fetch('/api/generate-menu', {
+      const response = await fetch('https://umkm-eight.vercel.app/api/generate-menu', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

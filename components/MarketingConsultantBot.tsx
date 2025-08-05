@@ -49,7 +49,7 @@ const MarketingConsultantBot = () => {
 
   const callChatbotAPI = async (message: string): Promise<ChatMessage> => {
     try {
-      const response = await fetch('/api/chatbot', {
+      const response = await fetch('https://umkm-eight.vercel.app/api/chatbot', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

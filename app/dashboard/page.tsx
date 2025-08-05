@@ -148,7 +148,7 @@ const Dashboard = () => {
         }
 
         // Fetch from original API for websites view with auth token
-        const response = await fetch('/api/list-businesses', {
+        const response = await fetch('https://umkm-eight.vercel.app/api/list-businesses', {
           headers: {
             'Authorization': `Bearer ${session.access_token}`
           }

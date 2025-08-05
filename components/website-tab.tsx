@@ -122,7 +122,7 @@ export default function WebsiteTab({ businessData, onUpdate }: WebsiteTabProps) 
       console.log('=== END CLIENT DEBUG ===');
 
       // Call the website generation API
-      const response = await fetch('/api/generate-website', {
+      const response = await fetch('https://umkm-eight.vercel.app/api/generate-website', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
