@@ -75,32 +75,72 @@ async function deploy(htmlCode: string, domain: string) {
       timeout: 30000 
     });
 
-    const input = await page.locator('input[placeholder="Enter your domain name"]').waitHandle();
-    // console.log(await page.evaluate(el => { return el.outerHTML ? el.outerHTML : "Not found"}, input));
-
-    console.log('Filling domain name...');
-    await input.type(`${domain}`, { delay: 100 });
-
-
-    console.log('Clicking paste code button...');
-    await page.locator('::-p-text(Paste Code)').click({ delay: 100 });
+    // Wait for the page to load
+    await page.waitForSelector('input[placeholder="Enter your domain name"]', { timeout: 10000 });
     
-    console.log('Filling HTML code...');
-    const textArea = await page.locator('textarea.PagesUploadCard_inputTextarea__YujEt').waitHandle();
-    await page.evaluate((el, code) => {
-      el.value = code;
-    }, textArea, htmlCode);
-    await textArea.type(' ', { delay: 100 });
+    console.log('Filling domain name...');
+    await page.type('input[placeholder="Enter your domain name"]', domain, { delay: 100 });
+
+    // Create a temporary HTML file
+    const fs = require('fs');
+    const path = require('path');
+    const tempHtmlPath = path.join(__dirname, `temp-${domain}.html`);
+    
+    try {
+      fs.writeFileSync(tempHtmlPath, htmlCode);
+      console.log('Created temporary HTML file:', tempHtmlPath);
+      
+      // Upload the HTML file
+      console.log('Uploading HTML file...');
+      const fileInput = await page.$('input[type="file"]');
+      if (fileInput) {
+        await fileInput.uploadFile(tempHtmlPath);
+        console.log('File uploaded successfully');
+      } else {
+        throw new Error('File input not found');
+      }
+      
+      // Wait a moment for the file to process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+    } finally {
+      // Clean up temporary file
+      if (fs.existsSync(tempHtmlPath)) {
+        fs.unlinkSync(tempHtmlPath);
+        console.log('Cleaned up temporary file');
+      }
+    }
 
     // Wait for the deploy button to be enabled
     console.log('Waiting for deploy button to be enabled...');
     await page.waitForFunction(() => {
-      const btn = document.querySelector('button.PagesUploadCard_deploymentBtn__7ZMYf');
-      return btn && !btn.hasAttribute('disabled');
+      const buttons = document.querySelectorAll('button');
+      for (const btn of buttons) {
+        const text = btn.textContent?.toLowerCase() || '';
+        if ((text.includes('get started') || text.includes('deploy') || text.includes('publish')) && !btn.hasAttribute('disabled')) {
+          return true;
+        }
+      }
+      return false;
     }, { timeout: 30000 });
 
     console.log('Clicking deploy button...');
-    await page.locator('button.PagesUploadCard_deploymentBtn__7ZMYf').click({ delay: 100 });
+    const deployButton = await page.$('button:has-text("Get Started"), button:has-text("get started"), button:has-text("Deploy"), button:has-text("deploy")');
+    if (deployButton) {
+      await deployButton.click();
+    } else {
+      // Fallback: click the first enabled button with "Get Started" text
+      await page.evaluate(() => {
+        const buttons = document.querySelectorAll('button');
+        for (const btn of buttons) {
+          const text = btn.textContent?.toLowerCase() || '';
+          if ((text.includes('get started') || text.includes('deploy')) && !btn.hasAttribute('disabled')) {
+            btn.click();
+            break;
+          }
+        }
+      });
+    }
     
     // Handle domain name conflicts with retry logic
     let attempts = 0;
@@ -113,8 +153,29 @@ async function deploy(htmlCode: string, domain: string) {
         console.log('Checking for domain name conflicts...');
         await (new Promise(resolve => setTimeout(resolve, 5000)));
         
-        let conflictObject = await page.locator('::-p-text(Project name already exists)').waitHandle();
-        const conflictExists = await page.evaluate(el => {return el.innerHTML ? true : false}, conflictObject);
+        // Check for various conflict messages
+        const conflictMessages = [
+          'Project name already exists',
+          'Domain already exists',
+          'Name already exists',
+          'already exists',
+          'conflict',
+          'taken'
+        ];
+        
+        let conflictExists = false;
+        for (const message of conflictMessages) {
+          try {
+            const element = await page.$(`text=${message}`);
+            if (element) {
+              conflictExists = true;
+              console.log(`Found conflict message: ${message}`);
+              break;
+            }
+          } catch (e) {
+            continue;
+          }
+        }
 
         if (conflictExists) {
           attempts++;
