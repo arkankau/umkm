@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import LogoGenerator from '@/components/LogoGenerator';
-import { getBusinessInfoNeo } from 'https://umkm-eight.vercel.app/lib/api';
+import { getBusinessInfoNeo } from '@/lib/api';
 import supabaseClient from '@/app/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, ArrowLeft } from 'lucide-react';

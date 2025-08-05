@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AIWebsiteService } from '@/lib_unused/ai-website-service';
+import { AIWebsiteService } from '@/lib/ai-website-service';
 
 export async function POST(request: NextRequest) {
   try {

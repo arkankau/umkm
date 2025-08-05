@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { deploymentService } from '@/lib_unused/deployment-service';
+import { deploymentService } from '@/lib/deployment-service';
 import supabaseClient from '@/app/lib/supabase';
 
 export const maxDuration = 300;

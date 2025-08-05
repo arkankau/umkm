@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateImageFromHTML } from '@/lib_unused/edgeone-image';
+import { generateImageFromHTML } from '@/lib/edgeone-image';
 import supabaseClient from '@/app/lib/supabase';
-import supabaseServer from '@/lib_unused/supabase-server';
+import supabaseServer from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   console.log('🚀 Menu generation API called');

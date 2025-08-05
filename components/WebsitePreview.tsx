@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BusinessData } from 'https://umkm-eight.vercel.app/lib/api';
+import { BusinessData } from '../lib/api';
 
 // Extended interface for website preview with businessId
 interface WebsitePreviewBusinessData extends BusinessData {
@@ -11,7 +11,7 @@ interface WebsitePreviewBusinessData extends BusinessData {
   websiteGenerated?: boolean;
   subdomain?: string;
 }
-import { websiteModificationFallback } from 'https://umkm-eight.vercel.app/lib/website-modification-fallback';
+import { websiteModificationFallback } from '@/lib/website-modification-fallback';
 
 interface WebsitePreviewProps {
   businessData: WebsitePreviewBusinessData;

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import WebsitePreview from './WebsitePreview';
-import { submitBusiness, BusinessData, SubmitBusinessResponse } from 'https://umkm-eight.vercel.app/lib/api';
+import { submitBusiness, BusinessData, SubmitBusinessResponse } from '../lib/api';
 
 interface BusinessFormProps {
   initialData?: Partial<BusinessData>;
